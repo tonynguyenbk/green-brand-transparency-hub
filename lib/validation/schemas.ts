@@ -294,6 +294,16 @@ export const correctionReviewSchema = z.object({
   resolutionNote: optionalText(2000),
 });
 
+export const studyStartSchema = z.object({
+  consent: z.literal(true, { error: "Consent is required to take part." }),
+});
+
+const likert = z.coerce.number().int().min(1).max(5);
+export const studyResponseSchema = z.object({
+  participantCode: z.string().uuid(),
+  items: z.record(z.string().regex(/^[A-Z]{2}\d$/), likert),
+});
+
 export const loginSchema = z.object({
   email: z.string().trim().email().max(200).optional().or(z.literal("")),
   password: z.string().min(1, "Password is required").max(200),

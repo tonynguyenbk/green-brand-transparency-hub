@@ -18,7 +18,7 @@ Schema: `prisma/schema.prisma`. Missing information is never stored as `0`: null
 | **MethodologyVersion** | Published methodology versions | `weightsJson` snapshot of config; exactly one `active`. |
 | **CorrectionReport** | Public "Report an issue" submissions | `reportType`, `message`, optional `claimId`, `sourceUrl`, `reporterEmail` (never shown publicly). Workflow OPEN → IN_REVIEW → RESOLVED / REJECTED. Never changes data or scores by itself. |
 | **AdminUser** | App-level admin profile | Allowlist for Supabase users. No passwords stored. |
-| **ResearchStudy / ResearchCondition / ResearchResponse** | Foundation for the planned consumer experiment | 5-point Likert construct means (brand trust, purchase intention, perceived transparency, perceived greenwashing), anonymous `participantCode`, consent flag. Not used by MVP flows. |
+| **ResearchStudy / ResearchCondition / ResearchResponse** | Consumer experiment (control vs Transparency Hub condition) | Study: `status` (DRAFT/ACTIVE/CLOSED), `consentText`, `stimulusJson` (ad shown to all), `debriefText`. Response: row created at consent with the server-side random assignment (`startedAt`); on submission item answers (`itemResponsesJson`), 5-point Likert construct means, `durationSeconds` and `completedAt` are stored. Anonymous UUID `participantCode`; no personal data. Incomplete rows only measure attrition. |
 
 ## Enums
 

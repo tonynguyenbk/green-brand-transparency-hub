@@ -464,15 +464,19 @@ model AdminUser {
 // ---------------------------------------------------------------------------
 
 model ResearchStudy {
-  id          String      @id @default(cuid())
-  slug        String      @unique
-  title       String
-  description String
-  consentText String
-  likertScale Int         @default(5)
-  status      StudyStatus @default(DRAFT)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id           String      @id @default(cuid())
+  slug         String      @unique
+  title        String
+  description  String
+  consentText  String
+  likertScale  Int         @default(5)
+  /// Advertisement shown to every condition: { brandName, headline, body, productDescription }
+  stimulusJson Json?
+  /// Debrief shown after submission (e.g. that the brand is fictional).
+  debriefText  String?
+  status       StudyStatus @default(DRAFT)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   conditions ResearchCondition[]
   responses  ResearchResponse[]
@@ -496,7 +500,7 @@ model ResearchCondition {
 
 /// Anonymous response. Construct scores are 5-point Likert means (1–5).
 model ResearchResponse {
-  id                    String   @id @default(cuid())
+  id                    String    @id @default(cuid())
   studyId               String
   conditionId           String
   participantCode       String
@@ -507,7 +511,12 @@ model ResearchResponse {
   perceivedGreenwashing Float?
   /// Raw item-level answers, e.g. {"BT1": 4, "BT2": 5}
   itemResponsesJson     Json?
-  submittedAt           DateTime @default(now())
+  /// Seconds between consent and submission (data-quality screening).
+  durationSeconds       Int?
+  /// Row is created at consent + random assignment (condition is held server-side);
+  /// completedAt is set on submission. Incomplete rows measure attrition only.
+  startedAt             DateTime  @default(now())
+  completedAt           DateTime?
 
   study     ResearchStudy     @relation(fields: [studyId], references: [id], onDelete: Cascade)
   condition ResearchCondition @relation(fields: [conditionId], references: [id], onDelete: Cascade)

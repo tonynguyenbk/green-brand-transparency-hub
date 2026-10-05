@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { ArrowDownIcon } from "lucide-react";
+import Link from "next/link";
 import { Container, PageHeader, Section } from "@/components/layout/page-header";
+import { prisma } from "@/lib/db/prisma";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Research framework" };
 
 const MODEL = [
@@ -51,7 +54,14 @@ const CONSTRUCTS = [
   },
 ];
 
-export default function ResearchPage() {
+export default async function ResearchPage() {
+  const activeStudy = await prisma.researchStudy.findFirst({
+    where: { status: "ACTIVE" },
+    select: { slug: true, title: true },
+  });
+  const completedResponses = await prisma.researchResponse.count({
+    where: { completedAt: { not: null } },
+  });
   return (
     <Container className="py-10">
       <PageHeader
@@ -160,8 +170,25 @@ export default function ResearchPage() {
             className="border-notice/30 bg-notice-bg text-notice rounded-lg border p-4 text-sm"
             role="note"
           >
-            <strong>Status: planned.</strong> No participant data has been collected and no effects
-            have been demonstrated.
+            {activeStudy ? (
+              <>
+                <strong>Status: pilot open.</strong> Data collection is in progress; no effects have
+                been demonstrated.{" "}
+                <Link href={`/study/${activeStudy.slug}`} className="font-semibold underline">
+                  Take part (about 3 minutes, anonymous)
+                </Link>
+              </>
+            ) : completedResponses > 0 ? (
+              <>
+                <strong>Status: data collection closed.</strong> Results have not been published and
+                no effects are claimed.
+              </>
+            ) : (
+              <>
+                <strong>Status: planned.</strong> No participant data has been collected and no
+                effects have been demonstrated.
+              </>
+            )}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="bg-card rounded-lg border p-4">

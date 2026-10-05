@@ -21,6 +21,7 @@ const ADMIN_NAV = [
   { href: "/admin/audits", label: "Accessibility audits" },
   { href: "/admin/methodology", label: "Methodology" },
   { href: "/admin/corrections", label: "Correction reports" },
+  { href: "/admin/research", label: "Research study" },
 ];
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {

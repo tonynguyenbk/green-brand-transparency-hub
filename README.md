@@ -48,7 +48,9 @@ Loomwell Apparel). URLs point to `example.com`; certification bodies are invente
 **Foundations**
 - Python scraping pipeline (robots.txt aware) + candidate importer (everything imported as `CANDIDATE`).
 - Analytics abstraction (console/local by default, provider-pluggable).
-- Research schema (`ResearchStudy`, `ResearchCondition`, `ResearchResponse`) for a later A/B study.
+- Consumer A/B study module: `/study/[slug]` (consent → balanced random assignment → advertisement ±
+  Transparency Hub summary → 7 Likert items → debrief) and admin results (n, M, SD, Cronbach's α,
+  Welch t-test, Cohen's d, CSV export) with explicit exploratory-study caveats.
 
 ## Stack
 

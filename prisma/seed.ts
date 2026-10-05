@@ -1230,6 +1230,15 @@ async function main() {
       consentText:
         "Participation is voluntary and anonymous. You may stop at any time. Only aggregated, anonymised results will be reported.",
       likertScale: 5,
+      stimulusJson: {
+        brandName: "Verdant Wear",
+        headline: "Designed with the planet in mind.",
+        body: "Our new outdoor collection is made with recycled materials and responsible partners, so you can explore further with a lighter footprint.",
+        productDescription:
+          "Verdant Wear Trail Shell jacket — waterproof, breathable, recycled polyester shell.",
+      },
+      debriefText:
+        "Thank you. This study compares how people respond to a sustainability message with and without structured transparency information. Verdant Wear is a fictional brand created for this study, and all figures shown are invented. No personal data was collected.",
       status: "DRAFT",
       conditions: {
         create: [

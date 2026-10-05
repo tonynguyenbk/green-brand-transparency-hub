@@ -34,6 +34,16 @@ npm run import:candidates -- scripts/scrape/output/<file>.json
 Imported sources and claims are `CANDIDATE` and never affect scores. A sample file is in
 `scripts/import/examples/`.
 
+## Running the consumer study
+
+1. Review the consent text, stimulus (`ResearchStudy.stimulusJson`) and debrief; obtain ethics approval if
+   your institution requires it.
+2. In `/admin/research`, open the study. Share `/study/<slug>` (also linked from `/research` while open).
+3. Participants are assigned server-side to the condition with fewer started responses (ties random).
+4. Close the study, then use the results page or the CSV export for analysis. Responses completed in under
+   30 seconds are flagged, not excluded — decide exclusion rules before looking at results.
+5. Report findings as exploratory unless the sample supports more. Do not claim effects from small groups.
+
 ## Connecting Supabase
 
 1. Create a Supabase project. In *Project Settings → Database*, copy the pooled connection string into

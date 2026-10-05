@@ -1,12 +1,13 @@
 "use server";
 
-import { Prisma, type BrandStatus, type ClaimStatus } from "@prisma/client";
+import { Prisma, type BrandStatus, type ClaimStatus, type StudyStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import * as admin from "@/lib/services/admin-service";
 import * as claims from "@/lib/services/claim-service";
 import { reviewCorrectionReport } from "@/lib/services/correction-service";
+import { setStudyStatus } from "@/lib/services/research-service";
 import * as evidence from "@/lib/services/evidence-service";
 import { recalculateBrandScore } from "@/lib/services/scoring-service";
 import { BRAND_STATUSES, CLAIM_STATUSES } from "@/lib/validation/enums";
@@ -264,5 +265,18 @@ export async function reviewCorrectionAction(id: string, raw: unknown) {
   return run(correctionReviewSchema, raw, async (data) => {
     await reviewCorrectionReport(assertId(id), data.status, data.resolutionNote);
     return { message: "Report updated." };
+  });
+}
+
+// --- Research studies ------------------------------------------------------------
+
+export async function setStudyStatusAction(id: string, status: StudyStatus) {
+  return runSimple(async () => {
+    if (!["DRAFT", "ACTIVE", "CLOSED"].includes(status))
+      throw new evidence.EvidenceError("Invalid status");
+    await setStudyStatus(assertId(id), status);
+    return {
+      message: `Study ${status === "ACTIVE" ? "opened" : status === "CLOSED" ? "closed" : "set to draft"}.`,
+    };
   });
 }

@@ -79,6 +79,14 @@ accepted (422 otherwise). `website` is a honeypot and must be empty. Rate limite
 per client (in-memory; use a shared store when running multiple instances) → 429. Admins review reports at
 `/admin/corrections`.
 
+## Research study
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/study/:slug/start` | public | `{ consent: true }` → `201 { data: { participantCode, conditionKey } }`. Only ACTIVE studies; balanced random assignment stored server-side; rate limited |
+| POST | `/api/study/:slug/responses` | public | `{ participantCode, items: { BT1: 1–5, BT2, BT3, PI1, PI2, PT1, PG1 } }` → 204. All items required; one submission per code |
+| GET | `/api/admin/research/:id/export` | admin | Anonymous CSV of completed responses |
+
 ## Analytics
 
 `POST /api/analytics` `{ name, properties? }` — `name` ∈ `brand_search, brand_view, claim_expand,
