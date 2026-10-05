@@ -1,19 +1,31 @@
 "use client";
 
-import { ChevronRightIcon, FileTextIcon } from "lucide-react";
+import { ChevronRightIcon, FileTextIcon, FlagIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EvidenceStrengthBadge, RiskBadge } from "@/components/scoring/badges";
 import { Label } from "@/components/ui/label";
 import { track } from "@/lib/analytics/client";
 import type { ClaimView } from "@/lib/services/brand-service";
 import { humanizeEnum } from "@/lib/validation/enums";
+import { ReportIssueDialog } from "@/components/brand/report-issue-dialog";
+import { Button } from "@/components/ui/button";
 import { ClaimEvidenceSheet } from "./claim-evidence-sheet";
 
 const SELECT_CLASS =
   "h-9 rounded-md border border-input bg-card px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 
 /** Claim list with category/risk filters; selecting a claim opens its evidence panel. */
-export function ClaimsExplorer({ claims, brandSlug }: { claims: ClaimView[]; brandSlug: string }) {
+export function ClaimsExplorer({
+  claims,
+  brandSlug,
+  brandId,
+  brandName,
+}: {
+  claims: ClaimView[];
+  brandSlug: string;
+  brandId: string;
+  brandName: string;
+}) {
   const [category, setCategory] = useState("");
   const [risk, setRisk] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -118,6 +130,19 @@ export function ClaimsExplorer({ claims, brandSlug }: { claims: ClaimView[]; bra
       <ClaimEvidenceSheet
         claim={open}
         brandSlug={brandSlug}
+        reportSlot={(claimId) => (
+          <ReportIssueDialog
+            brandId={brandId}
+            brandName={brandName}
+            claims={claims.map((c) => ({ id: c.id, text: c.claimText }))}
+            defaultClaimId={claimId}
+            trigger={
+              <Button variant="ghost" size="sm">
+                <FlagIcon /> Report an issue with this claim
+              </Button>
+            }
+          />
+        )}
         onOpenChange={(o) => !o && setOpenId(null)}
       />
     </div>

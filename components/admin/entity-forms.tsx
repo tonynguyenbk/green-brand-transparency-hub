@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import {
   createMethodologyAction,
   linkEvidenceAction,
+  reviewCorrectionAction,
   saveAuditAction,
   saveBrandAction,
   saveCertificationAction,
@@ -20,6 +21,7 @@ import { DISCLOSURE_TOPIC_LABELS, type DisclosureTopicKey } from "@/lib/scoring/
 import {
   BRAND_STATUSES,
   CLAIM_STATUSES,
+  CORRECTION_STATUSES,
   DISCLOSURE_LEVELS,
   EVIDENCE_STRENGTHS,
   MISSING_DATA_STATES,
@@ -37,6 +39,7 @@ import {
   certificationSchema,
   claimSchema,
   claimSourceLinkSchema,
+  correctionReviewSchema,
   methodologySchema,
   sourceSchema,
   targetSchema,
@@ -751,6 +754,40 @@ export function MethodologyForm() {
         Weights must sum to 1.0. New versions start inactive.
       </p>
       <SubmitBar pending={pending} label="Create version" />
+    </form>
+  );
+}
+
+// --- Correction report review ------------------------------------------------------------
+
+export function CorrectionReviewForm({
+  id,
+  initial,
+}: {
+  id: string;
+  initial: { status: string; resolutionNote: string };
+}) {
+  const { form, onSubmit, pending } = useAdminForm({
+    schema: correctionReviewSchema,
+    defaultValues: initial,
+    submit: (v) => reviewCorrectionAction(id, v),
+  });
+  return (
+    <form onSubmit={onSubmit} className="space-y-4" noValidate>
+      <SelectField
+        form={form}
+        name="status"
+        label="Status"
+        options={opts(CORRECTION_STATUSES)}
+        className="max-w-xs"
+      />
+      <TextAreaField
+        form={form}
+        name="resolutionNote"
+        label="Resolution note (internal)"
+        hint="Record what was changed (e.g. source added, claim re-rated) or why the report was rejected."
+      />
+      <SubmitBar pending={pending} label="Save review" />
     </form>
   );
 }

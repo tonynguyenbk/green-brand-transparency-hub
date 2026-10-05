@@ -371,9 +371,11 @@ riskScore = 100 − transparencyStrength
 
           <Section id="corrections" title="Corrections">
             <p>
-              Brands and users will be able to report a missing or incorrect source, updated data or
-              a clarification. An administrator reviews each report before any change is published,
-              and recalculations create a new snapshot so changes remain traceable.
+              Anyone — including brand representatives — can use “Report an issue” on a brand
+              profile or on an individual claim to flag a missing or incorrect source, updated data
+              or a clarification. Reports never change data automatically: an administrator checks
+              the evidence, edits the relevant records and recalculates the score, which creates a
+              new snapshot so every change remains traceable.
             </p>
           </Section>
         </div>

@@ -40,7 +40,7 @@ export default async function AdminDashboard() {
           ["Brands", d.brands.length],
           ["Claims pending review", pending],
           ["Sources", d.sourceCount],
-          ["Score snapshots (recent)", d.recentScores.length],
+          ["Open correction reports", d.openCorrections],
         ].map(([k, v]) => (
           <div key={k} className="bg-card rounded-xl border p-4">
             <dt className="text-muted-foreground text-xs">{k}</dt>

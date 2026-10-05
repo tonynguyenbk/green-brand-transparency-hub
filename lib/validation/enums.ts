@@ -7,6 +7,9 @@
 import type {
   BrandStatus,
   ClaimStatus,
+  CorrectionStatus,
+  CorrectionType,
+  ReporterRole,
   DisclosureLevel,
   DisclosureTopic,
   EvidenceStrength,
@@ -113,6 +116,26 @@ export const SUSTAINABILITY_CATEGORIES = [
   "OTHER",
 ] as const satisfies readonly SustainabilityCategory[];
 
+export const CORRECTION_TYPES = [
+  "MISSING_SOURCE",
+  "INCORRECT_SOURCE",
+  "UPDATED_DATA",
+  "CLARIFICATION",
+  "OTHER",
+] as const satisfies readonly CorrectionType[];
+export const CORRECTION_STATUSES = [
+  "OPEN",
+  "IN_REVIEW",
+  "RESOLVED",
+  "REJECTED",
+] as const satisfies readonly CorrectionStatus[];
+export const REPORTER_ROLES = [
+  "CONSUMER",
+  "BRAND_REPRESENTATIVE",
+  "RESEARCHER",
+  "OTHER",
+] as const satisfies readonly ReporterRole[];
+
 // Exhaustiveness checks (compile-time only).
 type Exhaustive<All, Listed> = [Exclude<All, Listed>] extends [never] ? true : never;
 const _checks: [
@@ -128,7 +151,10 @@ const _checks: [
   Exhaustive<DisclosureLevel, (typeof DISCLOSURE_LEVELS)[number]>,
   Exhaustive<DisclosureTopic, (typeof DISCLOSURE_TOPICS)[number]>,
   Exhaustive<SustainabilityCategory, (typeof SUSTAINABILITY_CATEGORIES)[number]>,
-] = [true, true, true, true, true, true, true, true, true, true, true, true];
+  Exhaustive<CorrectionType, (typeof CORRECTION_TYPES)[number]>,
+  Exhaustive<CorrectionStatus, (typeof CORRECTION_STATUSES)[number]>,
+  Exhaustive<ReporterRole, (typeof REPORTER_ROLES)[number]>,
+] = [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true];
 void _checks;
 
 /** "SUSTAINABILITY_REPORT" → "Sustainability report" */

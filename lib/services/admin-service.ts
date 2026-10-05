@@ -105,31 +105,38 @@ export async function activateMethodologyVersion(id: string) {
 // --- Dashboard -------------------------------------------------------------
 
 export async function getAdminDashboard() {
-  const [brands, pendingClaims, sourceCount, recentScores, claimsByStatus] = await Promise.all([
-    prisma.brand.findMany({
-      include: {
-        scores: { orderBy: { calculatedAt: "desc" }, take: 1 },
-        _count: {
-          select: { sources: true, claims: true, accessibilityAudits: true, disclosureItems: true },
+  const [brands, pendingClaims, sourceCount, recentScores, claimsByStatus, openCorrections] =
+    await Promise.all([
+      prisma.brand.findMany({
+        include: {
+          scores: { orderBy: { calculatedAt: "desc" }, take: 1 },
+          _count: {
+            select: {
+              sources: true,
+              claims: true,
+              accessibilityAudits: true,
+              disclosureItems: true,
+            },
+          },
+          claims: { select: { status: true, _count: { select: { claimSources: true } } } },
         },
-        claims: { select: { status: true, _count: { select: { claimSources: true } } } },
-      },
-      orderBy: { name: "asc" },
-    }),
-    prisma.claim.findMany({
-      where: { status: { in: ["CANDIDATE", "IN_REVIEW"] } },
-      include: { brand: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    }),
-    prisma.source.count(),
-    prisma.brandScore.findMany({
-      include: { brand: { select: { name: true } } },
-      orderBy: { calculatedAt: "desc" },
-      take: 8,
-    }),
-    prisma.claim.groupBy({ by: ["status"], _count: true }),
-  ]);
+        orderBy: { name: "asc" },
+      }),
+      prisma.claim.findMany({
+        where: { status: { in: ["CANDIDATE", "IN_REVIEW"] } },
+        include: { brand: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+      prisma.source.count(),
+      prisma.brandScore.findMany({
+        include: { brand: { select: { name: true } } },
+        orderBy: { calculatedAt: "desc" },
+        take: 8,
+      }),
+      prisma.claim.groupBy({ by: ["status"], _count: true }),
+      prisma.correctionReport.count({ where: { status: { in: ["OPEN", "IN_REVIEW"] } } }),
+    ]);
 
   const warnings: { brand: string; brandId: string; message: string }[] = [];
   for (const b of brands) {
@@ -167,5 +174,6 @@ export async function getAdminDashboard() {
       number
     >,
     warnings,
+    openCorrections,
   };
 }

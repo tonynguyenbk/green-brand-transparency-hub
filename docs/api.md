@@ -69,6 +69,16 @@ accessible supporting evidence according to this methodology").
 
 Nothing is stored.
 
+## Corrections
+
+`POST /api/corrections` — public "Report an issue".
+Body: `{ brandId, claimId?, reportType: MISSING_SOURCE|INCORRECT_SOURCE|UPDATED_DATA|CLARIFICATION|OTHER,
+message (20–2000 chars), sourceUrl?, reporterRole: CONSUMER|BRAND_REPRESENTATIVE|RESEARCHER|OTHER,
+reporterEmail?, website: "" }` → `201 { data: { id } }`. Only published brands and their public claims are
+accepted (422 otherwise). `website` is a honeypot and must be empty. Rate limited to 5 reports per 10 minutes
+per client (in-memory; use a shared store when running multiple instances) → 429. Admins review reports at
+`/admin/corrections`.
+
 ## Analytics
 
 `POST /api/analytics` `{ name, properties? }` — `name` ∈ `brand_search, brand_view, claim_expand,

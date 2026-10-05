@@ -52,3 +52,35 @@ test.describe("@admin", () => {
     await expect(page.getByText(text)).toBeVisible();
   });
 });
+
+test.describe("@admin corrections", () => {
+  test.skip(!PASSWORD, "DEV_ADMIN_PASSWORD is not set — development admin login unavailable");
+
+  test("public report an issue → appears in the admin review queue", async ({ page }) => {
+    const marker = `E2E report ${Date.now()}`;
+    await page.goto("/brands/loomwell-apparel");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("button", { name: "Report an issue" }).first().click();
+
+    const form = page.getByTestId("report-issue-form");
+    await form.getByLabel("What kind of issue?").selectOption("UPDATED_DATA");
+    await form
+      .getByLabel("Details")
+      .fill(`${marker}: the 2025 report adds carbon emissions data for both factories.`);
+    await form.getByRole("button", { name: "Send report" }).click();
+    await expect(page.getByText(/your report will be reviewed/)).toBeVisible();
+
+    await page.goto("/admin/login");
+    await page.getByLabel("Development password").fill(PASSWORD);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+
+    await page.goto("/admin/corrections?status=OPEN");
+    await page
+      .getByRole("link")
+      .filter({ hasText: /\d{4}$/ })
+      .first()
+      .click();
+    await expect(page.getByText(marker)).toBeVisible();
+  });
+});

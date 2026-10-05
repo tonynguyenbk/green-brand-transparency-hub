@@ -6,6 +6,7 @@ import type { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import * as admin from "@/lib/services/admin-service";
 import * as claims from "@/lib/services/claim-service";
+import { reviewCorrectionReport } from "@/lib/services/correction-service";
 import * as evidence from "@/lib/services/evidence-service";
 import { recalculateBrandScore } from "@/lib/services/scoring-service";
 import { BRAND_STATUSES, CLAIM_STATUSES } from "@/lib/validation/enums";
@@ -15,6 +16,7 @@ import {
   certificationSchema,
   claimSchema,
   claimSourceLinkSchema,
+  correctionReviewSchema,
   disclosureSchema,
   fieldErrors,
   idSchema,
@@ -253,5 +255,14 @@ export async function activateMethodologyAction(id: string) {
       message:
         "Methodology activated. Recalculate brand scores to create snapshots under this version.",
     };
+  });
+}
+
+// --- Correction reports --------------------------------------------------------
+
+export async function reviewCorrectionAction(id: string, raw: unknown) {
+  return run(correctionReviewSchema, raw, async (data) => {
+    await reviewCorrectionReport(assertId(id), data.status, data.resolutionNote);
+    return { message: "Report updated." };
   });
 }

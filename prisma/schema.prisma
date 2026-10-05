@@ -152,6 +152,28 @@ enum StudyStatus {
   CLOSED
 }
 
+enum CorrectionType {
+  MISSING_SOURCE
+  INCORRECT_SOURCE
+  UPDATED_DATA
+  CLARIFICATION
+  OTHER
+}
+
+enum CorrectionStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum ReporterRole {
+  CONSUMER
+  BRAND_REPRESENTATIVE
+  RESEARCHER
+  OTHER
+}
+
 // ---------------------------------------------------------------------------
 // Core catalogue
 // ---------------------------------------------------------------------------
@@ -167,23 +189,23 @@ model Industry {
 }
 
 model Brand {
-  id             String      @id @default(cuid())
-  slug           String      @unique
-  name           String
-  industryId     String
-  country        String?
-  website        String?
-  logoUrl        String?
-  description    String?
-  isFictional    Boolean     @default(false)
-  status         BrandStatus @default(DRAFT)
+  id               String           @id @default(cuid())
+  slug             String           @unique
+  name             String
+  industryId       String
+  country          String?
+  website          String?
+  logoUrl          String?
+  description      String?
+  isFictional      Boolean          @default(false)
+  status           BrandStatus      @default(DRAFT)
   /// Whether public sustainability targets were searched for and found.
   /// NOT_FOUND with zero targets scores 0 on Targets & Progress;
   /// PENDING_REVIEW leaves the dimension uncalculated.
   targetsDataState MissingDataState @default(PENDING_REVIEW)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  lastReviewedAt DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  lastReviewedAt   DateTime?
 
   industry            Industry               @relation(fields: [industryId], references: [id], onDelete: Restrict)
   sources             Source[]
@@ -194,6 +216,7 @@ model Brand {
   accessibilityAudits AccessibilityAudit[]
   disclosureItems     DisclosureItem[]
   researchConditions  ResearchCondition[]
+  correctionReports   CorrectionReport[]
 
   @@index([industryId])
   @@index([status])
@@ -251,8 +274,9 @@ model Claim {
   updatedAt          DateTime               @updatedAt
   reviewedAt         DateTime?
 
-  brand        Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  claimSources ClaimSource[]
+  brand             Brand              @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  claimSources      ClaimSource[]
+  correctionReports CorrectionReport[]
 
   @@index([brandId])
   @@index([status])
@@ -394,6 +418,30 @@ model MethodologyVersion {
   publishedAt DateTime?
   active      Boolean   @default(false)
   createdAt   DateTime  @default(now())
+}
+
+/// Public "Report an issue" submissions. Reviewed by an admin before any data
+/// change; reports never modify brand data or scores by themselves.
+model CorrectionReport {
+  id             String           @id @default(cuid())
+  brandId        String
+  claimId        String?
+  reportType     CorrectionType
+  message        String
+  sourceUrl      String?
+  reporterRole   ReporterRole     @default(OTHER)
+  /// Optional and only used to follow up; never displayed publicly.
+  reporterEmail  String?
+  status         CorrectionStatus @default(OPEN)
+  resolutionNote String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  resolvedAt     DateTime?
+
+  brand Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  claim Claim? @relation(fields: [claimId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
 }
 
 // ---------------------------------------------------------------------------

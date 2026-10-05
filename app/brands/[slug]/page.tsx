@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TrackEvent } from "@/components/analytics/track-event";
 import { ScoreHistoryChart } from "@/components/charts/score-history-chart";
+import { ReportIssueDialog } from "@/components/brand/report-issue-dialog";
 import { ClaimsExplorer } from "@/components/claim/claims-explorer";
 import {
   CertificationList,
@@ -130,6 +131,11 @@ export default async function BrandProfilePage(props: PageProps<"/brands/[slug]"
                     <GitCompareArrowsIcon /> Compare
                   </Link>
                 </Button>
+                <ReportIssueDialog
+                  brandId={brand.id}
+                  brandName={brand.name}
+                  claims={claims.map((c) => ({ id: c.id, text: c.claimText }))}
+                />
               </div>
             </div>
 
@@ -246,7 +252,12 @@ export default async function BrandProfilePage(props: PageProps<"/brands/[slug]"
           {claims.length === 0 ? (
             <EmptyState title="No claims have been reviewed yet." />
           ) : (
-            <ClaimsExplorer claims={claims} brandSlug={brand.slug} />
+            <ClaimsExplorer
+              claims={claims}
+              brandSlug={brand.slug}
+              brandId={brand.id}
+              brandName={brand.name}
+            />
           )}
         </Section>
 

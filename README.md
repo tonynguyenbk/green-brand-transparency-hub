@@ -36,10 +36,12 @@ Loomwell Apparel). URLs point to `example.com`; certification bodies are invente
 - Compare 2–4 brands: table, grouped bar chart, neutral methodology-scoped statements.
 - Rule-based Claim Checker (no AI) using the same claim-risk formula as reviewed claims.
 - Methodology (values read from the scoring config), Research framework, About.
+- "Report an issue" on every profile and claim (validated, honeypot + rate limited) feeding an admin review queue.
 
 **Admin (authenticated)**
 - Dashboard: brands, claims pending review, source counts, recent scoring runs, data-quality warnings.
 - CRUD for brands, sources, claims, certifications, targets, accessibility audits, methodology versions.
+- Correction-report review queue (open → in review → resolved / rejected).
 - Disclosure checklist, evidence linking, claim review workflow (Candidate → In review → Verified → Published / Archived).
 - Recalculate score → immutable `BrandScore` snapshot; publish/unpublish profiles.
 

@@ -27,10 +27,13 @@ export function ClaimEvidenceSheet({
   claim,
   brandSlug,
   onOpenChange,
+  reportSlot,
 }: {
   claim: ClaimView | null;
   brandSlug: string;
   onOpenChange: (open: boolean) => void;
+  /** Renders a "report an issue" control for the open claim. */
+  reportSlot?: (claimId: string) => React.ReactNode;
 }) {
   return (
     <Sheet open={claim !== null} onOpenChange={onOpenChange}>
@@ -223,6 +226,7 @@ export function ClaimEvidenceSheet({
                 “Not found” means public supporting evidence was not found during the review — not
                 that evidence definitely does not exist.
               </p>
+              {reportSlot?.(claim.id)}
             </div>
           </>
         )}

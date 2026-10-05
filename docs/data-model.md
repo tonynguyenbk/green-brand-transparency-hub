@@ -16,6 +16,7 @@ Schema: `prisma/schema.prisma`. Missing information is never stored as `0`: null
 | **AccessibilityAudit** | Click count + rubric (searchability 0–3, readability 0–3, evidence linkage 0–4) | Latest audit is scored. |
 | **BrandScore** | Immutable score snapshot | Five dimensions, overall, `averageClaimRisk`, `claimCount`, `sourceCount`, `confidenceLevel`, `methodologyVersion`, `calculatedAt`, `detailsJson` (full trace + gaps). Never updated. |
 | **MethodologyVersion** | Published methodology versions | `weightsJson` snapshot of config; exactly one `active`. |
+| **CorrectionReport** | Public "Report an issue" submissions | `reportType`, `message`, optional `claimId`, `sourceUrl`, `reporterEmail` (never shown publicly). Workflow OPEN → IN_REVIEW → RESOLVED / REJECTED. Never changes data or scores by itself. |
 | **AdminUser** | App-level admin profile | Allowlist for Supabase users. No passwords stored. |
 | **ResearchStudy / ResearchCondition / ResearchResponse** | Foundation for the planned consumer experiment | 5-point Likert construct means (brand trust, purchase intention, perceived transparency, perceived greenwashing), anonymous `participantCode`, consent flag. Not used by MVP flows. |
 
@@ -23,7 +24,7 @@ Schema: `prisma/schema.prisma`. Missing information is never stored as `0`: null
 
 `BrandStatus`, `ClaimStatus`, `ReviewStatus`, `RiskLevel`, `VerificationStatus`, `SourceType`,
 `VerificationLevel`, `EvidenceStrength`, `ConfidenceLevel`, `MissingDataState`, `DisclosureLevel`,
-`DisclosureTopic`, `SustainabilityCategory`, `AdminRole`, `StudyStatus`.
+`DisclosureTopic`, `SustainabilityCategory`, `AdminRole`, `StudyStatus`, `CorrectionType`, `CorrectionStatus`, `ReporterRole`.
 
 ## Missing-data states
 

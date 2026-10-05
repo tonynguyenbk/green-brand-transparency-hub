@@ -2,10 +2,13 @@ import { z } from "zod";
 import {
   BRAND_STATUSES,
   CLAIM_STATUSES,
+  CORRECTION_STATUSES,
+  CORRECTION_TYPES,
   DISCLOSURE_LEVELS,
   DISCLOSURE_TOPICS,
   EVIDENCE_STRENGTHS,
   MISSING_DATA_STATES,
+  REPORTER_ROLES,
   REVIEW_STATUSES,
   RISK_LEVELS,
   SOURCE_TYPES,
@@ -268,6 +271,27 @@ export const brandDirectoryQuerySchema = z.object({
   maxScore: z.coerce.number().min(0).max(100).optional().catch(undefined),
   risk: z.enum(RISK_LEVELS).optional().catch(undefined),
   sort: z.enum(["score_desc", "score_asc", "reviewed_desc", "alpha"]).optional().catch(undefined),
+});
+
+export const correctionReportSchema = z.object({
+  brandId: idSchema,
+  claimId: optionalId,
+  reportType: z.enum(CORRECTION_TYPES),
+  message: requiredText(20, 2000),
+  sourceUrl: optionalUrl,
+  reporterRole: z.enum(REPORTER_ROLES),
+  reporterEmail: z.preprocess(
+    (v) => (typeof v === "string" ? (v.trim() === "" ? null : v.trim()) : emptyToNull(v)),
+    z.string().email("Enter a valid e-mail or leave it empty").max(200).nullable(),
+  ),
+  /** Honeypot: must stay empty (bots fill every field). */
+  website: z.string().max(0).optional().or(z.literal("")),
+});
+export type CorrectionReportInput = z.output<typeof correctionReportSchema>;
+
+export const correctionReviewSchema = z.object({
+  status: z.enum(CORRECTION_STATUSES),
+  resolutionNote: optionalText(2000),
 });
 
 export const loginSchema = z.object({
