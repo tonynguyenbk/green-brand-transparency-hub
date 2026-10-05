@@ -1,0 +1,468 @@
+// Green Brand Transparency Hub — data model
+//
+// The model evaluates the transparency of sustainability COMMUNICATION, not
+// environmental performance. Missing information is never stored as zero:
+// nullable rubric fields mean "not yet assessed", and explicit MissingDataState
+// values record why information is absent.
+//
+// See docs/data-model.md for a table-by-table explanation.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum BrandStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+/// Claim review workflow. Only VERIFIED and PUBLISHED claims affect public scores.
+enum ClaimStatus {
+  CANDIDATE
+  IN_REVIEW
+  VERIFIED
+  PUBLISHED
+  ARCHIVED
+}
+
+/// Review workflow for sources. Only VERIFIED and PUBLISHED sources count.
+enum ReviewStatus {
+  CANDIDATE
+  IN_REVIEW
+  VERIFIED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum RiskLevel {
+  LOW
+  MODERATE
+  HIGH
+}
+
+enum VerificationStatus {
+  VERIFIED
+  PARTIALLY_VERIFIED
+  SELF_DECLARED
+  UNVERIFIED
+  EXPIRED
+  PENDING_REVIEW
+}
+
+enum SourceType {
+  SUSTAINABILITY_REPORT
+  ESG_REPORT
+  ANNUAL_REPORT
+  SUSTAINABILITY_WEBPAGE
+  PRODUCT_PAGE
+  REGULATORY_FILING
+  CLIMATE_REPORT
+  CERTIFICATION_DATABASE
+  ASSURANCE_STATEMENT
+  THIRD_PARTY_AUDIT
+  ACADEMIC_PUBLICATION
+  NGO_REPORT
+  GOVERNMENT_PUBLICATION
+  NEWS_ARTICLE
+  MARKETING_MATERIAL
+  OTHER
+}
+
+/// How independent a source is. Maps onto the verification ladder (1–4).
+enum VerificationLevel {
+  SELF_DECLARED
+  EXTERNAL_REFERENCE
+  RECOGNIZED_CERTIFICATION
+  INDEPENDENT_ASSURANCE
+}
+
+/// Human judgement on how strongly a linked source supports a claim.
+enum EvidenceStrength {
+  STRONG
+  MODERATE
+  LIMITED
+  NOT_FOUND
+}
+
+/// Confidence in the transparency ASSESSMENT (not in environmental performance).
+enum ConfidenceLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum MissingDataState {
+  AVAILABLE
+  NOT_AVAILABLE
+  NOT_FOUND
+  NOT_APPLICABLE
+  PENDING_REVIEW
+}
+
+enum DisclosureLevel {
+  ABSENT
+  PARTIAL
+  CLEAR
+}
+
+enum DisclosureTopic {
+  SUSTAINABILITY_REPORT
+  CARBON_EMISSIONS
+  MATERIAL_SOURCING
+  SUPPLY_CHAIN
+  WASTE_RECYCLING
+  WATER_RESOURCE_USE
+  METHODOLOGY
+}
+
+enum SustainabilityCategory {
+  MATERIALS
+  PACKAGING
+  CARBON_CLIMATE
+  ENERGY
+  WATER
+  WASTE_CIRCULARITY
+  SUPPLY_CHAIN
+  CHEMICALS_INGREDIENTS
+  BIODIVERSITY
+  GENERAL
+  OTHER
+}
+
+enum AdminRole {
+  ADMIN
+  EDITOR
+}
+
+enum StudyStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+// ---------------------------------------------------------------------------
+// Core catalogue
+// ---------------------------------------------------------------------------
+
+model Industry {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  brands Brand[]
+}
+
+model Brand {
+  id             String      @id @default(cuid())
+  slug           String      @unique
+  name           String
+  industryId     String
+  country        String?
+  website        String?
+  logoUrl        String?
+  description    String?
+  isFictional    Boolean     @default(false)
+  status         BrandStatus @default(DRAFT)
+  /// Whether public sustainability targets were searched for and found.
+  /// NOT_FOUND with zero targets scores 0 on Targets & Progress;
+  /// PENDING_REVIEW leaves the dimension uncalculated.
+  targetsDataState MissingDataState @default(PENDING_REVIEW)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  lastReviewedAt DateTime?
+
+  industry            Industry               @relation(fields: [industryId], references: [id], onDelete: Restrict)
+  sources             Source[]
+  claims              Claim[]
+  certifications      Certification[]
+  targets             SustainabilityTarget[]
+  scores              BrandScore[]
+  accessibilityAudits AccessibilityAudit[]
+  disclosureItems     DisclosureItem[]
+  researchConditions  ResearchCondition[]
+
+  @@index([industryId])
+  @@index([status])
+}
+
+model Source {
+  id                String            @id @default(cuid())
+  brandId           String
+  title             String
+  sourceType        SourceType
+  publisher         String?
+  url               String?
+  publicationDate   DateTime?
+  accessedAt        DateTime?
+  verificationLevel VerificationLevel @default(SELF_DECLARED)
+  archivedUrl       String?
+  notes             String?
+  status            ReviewStatus      @default(CANDIDATE)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  brand           Brand                  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  claimSources    ClaimSource[]
+  certifications  Certification[]
+  targets         SustainabilityTarget[]
+  disclosureItems DisclosureItem[]
+
+  @@index([brandId])
+}
+
+/// Component scores use a 0–5 reviewer rubric (null = not yet assessed).
+/// evidenceScore doubles as the claim's Evidence Level (0–5).
+/// riskScore / riskLevel are written by the claim-risk engine, never by hand.
+model Claim {
+  id                 String                 @id @default(cuid())
+  brandId            String
+  claimText          String
+  claimCategory      SustainabilityCategory @default(GENERAL)
+  claimDate          DateTime?
+  specificityScore   Int?
+  evidenceScore      Int?
+  measurabilityScore Int?
+  verificationScore  Int?
+  contextScore       Int?
+  riskScore          Float?
+  riskLevel          RiskLevel?
+  /// Reviewer notes shown in the public evidence panel.
+  methodologyNote    String?
+  verificationNote   String?
+  reviewerNotes      String?
+  /// Origin of the record, e.g. "manual" or "import:scrape-2026-10-05".
+  origin             String                 @default("manual")
+  status             ClaimStatus            @default(CANDIDATE)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  reviewedAt         DateTime?
+
+  brand        Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  claimSources ClaimSource[]
+
+  @@index([brandId])
+  @@index([status])
+}
+
+model ClaimSource {
+  id               String           @id @default(cuid())
+  claimId          String
+  sourceId         String
+  evidenceExcerpt  String?
+  pageNumber       String?
+  evidenceStrength EvidenceStrength @default(LIMITED)
+  createdAt        DateTime         @default(now())
+
+  claim  Claim  @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  source Source @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([claimId, sourceId])
+}
+
+model Certification {
+  id                 String             @id @default(cuid())
+  brandId            String
+  name               String
+  certificationBody  String?
+  /// What the certification actually covers (product line, site, material...).
+  scope              String
+  validFrom          DateTime?
+  validTo            DateTime?
+  sourceId           String?
+  verificationStatus VerificationStatus @default(PENDING_REVIEW)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  brand  Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  source Source? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  @@index([brandId])
+}
+
+model SustainabilityTarget {
+  id                 String                 @id @default(cuid())
+  brandId            String
+  title              String
+  category           SustainabilityCategory @default(GENERAL)
+  metric             String?
+  baselineValue      Float?
+  baselineYear       Int?
+  targetValue        Float?
+  targetYear         Int?
+  latestProgress     Float?
+  progressYear       Int?
+  /// Reviewer judgement: is the target specific (clear scope and object)?
+  isSpecific         Boolean                @default(false)
+  /// Reviewer judgement: is year-on-year / historical progress published?
+  hasHistoricalData  Boolean                @default(false)
+  verificationStatus VerificationStatus     @default(PENDING_REVIEW)
+  sourceId           String?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  brand  Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  source Source? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  @@index([brandId])
+}
+
+/// One row per disclosure topic per brand (Sustainability Disclosure dimension).
+model DisclosureItem {
+  id        String           @id @default(cuid())
+  brandId   String
+  topic     DisclosureTopic
+  state     MissingDataState @default(PENDING_REVIEW)
+  /// Required when state = AVAILABLE.
+  level     DisclosureLevel?
+  sourceId  String?
+  notes     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  brand  Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  source Source? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  @@unique([brandId, topic])
+}
+
+/// Rubric: clickCount (integer), searchability 0–3, readability 0–3, evidenceLinkage 0–4.
+model AccessibilityAudit {
+  id                   String   @id @default(cuid())
+  brandId              String
+  clickCount           Int?
+  searchabilityScore   Int?
+  readabilityScore     Int?
+  evidenceLinkageScore Int?
+  notes                String?
+  reviewedAt           DateTime @default(now())
+  createdAt            DateTime @default(now())
+
+  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@index([brandId, reviewedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Scoring
+// ---------------------------------------------------------------------------
+
+/// Immutable snapshot. Every recalculation inserts a new row; rows are never updated.
+model BrandScore {
+  id                 String          @id @default(cuid())
+  brandId            String
+  overallScore       Float
+  disclosureScore    Float
+  evidenceScore      Float
+  verificationScore  Float
+  targetsScore       Float
+  accessibilityScore Float
+  averageClaimRisk   Float?
+  claimCount         Int
+  confidenceLevel    ConfidenceLevel
+  sourceCount        Int
+  methodologyVersion String
+  /// Full calculation trace (inputs, sub-results, explanations).
+  detailsJson        Json?
+  calculatedAt       DateTime        @default(now())
+  createdAt          DateTime        @default(now())
+
+  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@index([brandId, calculatedAt])
+}
+
+model MethodologyVersion {
+  id          String    @id @default(cuid())
+  version     String    @unique
+  title       String
+  description String
+  weightsJson Json
+  publishedAt DateTime?
+  active      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Administration
+// ---------------------------------------------------------------------------
+
+/// Application profile only. Credentials live in Supabase Auth — never here.
+model AdminUser {
+  id             String    @id @default(cuid())
+  supabaseUserId String?   @unique
+  email          String    @unique
+  displayName    String?
+  role           AdminRole @default(EDITOR)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Consumer research foundation (not required for MVP flows)
+// ---------------------------------------------------------------------------
+
+model ResearchStudy {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  title       String
+  description String
+  consentText String
+  likertScale Int         @default(5)
+  status      StudyStatus @default(DRAFT)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  conditions ResearchCondition[]
+  responses  ResearchResponse[]
+}
+
+model ResearchCondition {
+  id          String  @id @default(cuid())
+  studyId     String
+  /// e.g. "control" or "transparency_hub"
+  key         String
+  name        String
+  description String
+  brandId     String?
+
+  study     ResearchStudy      @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  brand     Brand?             @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  responses ResearchResponse[]
+
+  @@unique([studyId, key])
+}
+
+/// Anonymous response. Construct scores are 5-point Likert means (1–5).
+model ResearchResponse {
+  id                    String   @id @default(cuid())
+  studyId               String
+  conditionId           String
+  participantCode       String
+  consentGiven          Boolean
+  brandTrust            Float?
+  purchaseIntention     Float?
+  perceivedTransparency Float?
+  perceivedGreenwashing Float?
+  /// Raw item-level answers, e.g. {"BT1": 4, "BT2": 5}
+  itemResponsesJson     Json?
+  submittedAt           DateTime @default(now())
+
+  study     ResearchStudy     @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  condition ResearchCondition @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+
+  @@unique([studyId, participantCode])
+}

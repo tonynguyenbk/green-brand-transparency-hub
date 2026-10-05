@@ -1,0 +1,22 @@
+{
+  "brandSlug": "pureform-beauty",
+  "sourceUrl": "https://example.com/pureform-beauty/our-planet",
+  "sourceTitle": "Our Planet page (fictional, imported)",
+  "extractedAt": "2026-10-01T09:00:00.000Z",
+  "candidates": [
+    {
+      "text": "From 2027 all PureForm jars will be made with recycled glass sourced in Europe.",
+      "keywords": ["recycled"],
+      "hasMetric": false,
+      "hasCertificationReference": false,
+      "status": "CANDIDATE"
+    },
+    {
+      "text": "Our shipping partners help us cut carbon emissions on every delivery.",
+      "keywords": ["carbon", "emission"],
+      "hasMetric": false,
+      "hasCertificationReference": false,
+      "status": "CANDIDATE"
+    }
+  ]
+}
