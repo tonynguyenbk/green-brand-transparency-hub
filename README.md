@@ -2,6 +2,8 @@
 
 > A Digital Platform for Evaluating Evidence Transparency in Sustainability Marketing Communication
 
+**Live demo:** https://green-brand-transparency-hub.vercel.app (fictional sample data)
+
 Green Brand Transparency Hub turns fragmented sustainability claims into structured, evidence-linked
 transparency indicators. It does **not** decide whether a brand is "green". It evaluates how specific,
 evidenced, measurable, verified, target-driven and accessible a brand's sustainability communication is.

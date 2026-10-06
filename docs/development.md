@@ -54,6 +54,19 @@ Imported sources and claims are `CANDIDATE` and never affect scores. A sample fi
 4. In *Authentication → Users*, create admin users (e-mail + password). Disable public sign-ups.
 5. Add their e-mails to `ADMIN_EMAILS` (or insert `AdminUser` rows). Any other Supabase user is rejected.
 
+## Deployment (Vercel + Neon)
+
+- The GitHub repository is connected to the Vercel project: pushing to `main` deploys production; other
+  branches / pull requests get preview deployments. Server functions run in `sin1` (`vercel.json`).
+- The Neon database is attached through the Vercel Marketplace, which provides `DATABASE_URL` (pooled) and
+  `DATABASE_URL_UNPOOLED`; `DIRECT_URL` is set to the unpooled URL for Prisma migrations.
+- Migrations are **not** run during the build. After adding a migration, apply it before/with the deploy:
+  `vercel env pull .env.production.local --environment=production` then
+  `DATABASE_URL=<unpooled> DIRECT_URL=<unpooled> npx prisma migrate deploy` (delete the pulled file afterwards).
+- Preview deployments share the production database — treat preview admin actions as real changes.
+- The production demo uses the password login (`ALLOW_DEV_AUTH=true` with a long random
+  `DEV_ADMIN_PASSWORD` and `DEV_AUTH_SECRET`). Switch to Supabase Auth for multi-user administration.
+
 ## Assumptions & decisions
 
 - **Prisma 6, not 7/8.** npm's `latest` tag for Prisma pointed at an 8.0 release candidate during
