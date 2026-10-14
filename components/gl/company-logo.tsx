@@ -3,9 +3,15 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
+/** Self-hosted logos for domains whose favicon is missing or unusable. */
+const LOCAL_LOGOS: Record<string, string> = {
+  "viettien.com.vn": "/logos/viet-tien.png",
+  "thmilk.vn": "/logos/th-true-milk.jpg",
+};
+
 /**
- * Company logo from the brand's own domain favicon (Google's favicon service),
- * falling back to a monogram when no icon is available.
+ * Company logo: a self-hosted file when we have one, otherwise the brand's own
+ * domain favicon (Google's favicon service), falling back to a monogram.
  */
 export function CompanyLogo({
   name,
@@ -40,7 +46,10 @@ export function CompanyLogo({
       {domain && !failed ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`}
+          src={
+            LOCAL_LOGOS[domain] ??
+            `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`
+          }
           alt=""
           width={size}
           height={size}
