@@ -221,6 +221,8 @@ model Brand {
   correctionReports   CorrectionReport[]
   esgAssessments      EsgAssessment[]
   esgSources          EsgSource[]
+  communityRatings    CommunityRating[]
+  articleSubmissions  ArticleSubmission[]
 
   @@index([industryId])
   @@index([status])
@@ -482,17 +484,127 @@ model EsgAssessment {
 
 /// Article or report used as evidence for an ESG assessment.
 model EsgSource {
-  id               String   @id @default(cuid())
+  id               String         @id @default(cuid())
   brandId          String
   title            String
   url              String
   /// True when the link is not a specific article (e.g. a search results page).
-  needsReplacement Boolean  @default(false)
-  createdAt        DateTime @default(now())
+  needsReplacement Boolean        @default(false)
+  pillar           EsgPillar?
+  sentiment        NewsSentiment?
+  /// Set when the source came from an approved community submission.
+  submissionId     String?        @unique
+  createdAt        DateTime       @default(now())
 
-  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brand      Brand              @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  submission ArticleSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  votes      SourceVote[]
 
   @@unique([brandId, url])
+}
+
+// ---------------------------------------------------------------------------
+// Community (signed-in members)
+// ---------------------------------------------------------------------------
+
+enum EsgPillar {
+  E
+  S
+  G
+}
+
+enum NewsSentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// A signed-in member. Credentials live with the identity provider — never here.
+model Member {
+  id          String   @id @default(cuid())
+  /// "supabase" or "dev"
+  provider    String
+  /// Stable user id from the provider.
+  subject     String
+  email       String?
+  displayName String
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ratings     CommunityRating[]
+  votes       SourceVote[]
+  submissions ArticleSubmission[]
+
+  @@unique([provider, subject])
+}
+
+/// One rating per member per company; editing replaces it.
+model CommunityRating {
+  id            String   @id @default(cuid())
+  brandId       String
+  memberId      String
+  /// Overall impression, 1–5 stars.
+  stars         Int
+  environmental Float
+  social        Float
+  governance    Float
+  comment       String?
+  /// Hidden by a moderator; excluded from aggregates.
+  hidden        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  brand  Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, memberId])
+  @@index([brandId, hidden])
+}
+
+/// Reliability vote on a source: does this article fairly reflect the company?
+model SourceVote {
+  id        String   @id @default(cuid())
+  sourceId  String
+  memberId  String
+  reliable  Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  source EsgSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  member Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, memberId])
+}
+
+/// An article suggested by a member, waiting for editorial review.
+model ArticleSubmission {
+  id         String           @id @default(cuid())
+  brandId    String
+  memberId   String
+  url        String
+  title      String
+  pillar     EsgPillar
+  sentiment  NewsSentiment
+  summary    String
+  status     SubmissionStatus @default(PENDING)
+  reviewNote String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime         @default(now())
+
+  brand  Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  member Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  source EsgSource?
+
+  @@unique([brandId, memberId, url])
+  @@index([status, createdAt])
 }
 
 // ---------------------------------------------------------------------------

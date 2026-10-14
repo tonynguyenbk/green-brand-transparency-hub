@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 
 const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/community", label: "Community" },
   { href: "/admin/brands", label: "Brands" },
   { href: "/admin/claims", label: "Claims" },
   { href: "/admin/sources", label: "Sources" },

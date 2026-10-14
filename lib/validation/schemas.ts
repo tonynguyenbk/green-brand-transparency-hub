@@ -309,6 +309,57 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required").max(200),
 });
 
+// --- Community (signed-in members) ---------------------------------------
+
+/** 1–10 in half-point steps, like the Greenlens pillar scores. */
+const pillarScore = z.coerce
+  .number()
+  .min(1)
+  .max(10)
+  .refine((n) => Number.isInteger(n * 2), "Use half-point steps");
+
+export const communityRatingSchema = z.object({
+  brandSlug: slugSchema,
+  stars: z.coerce.number().int().min(1).max(5),
+  environmental: pillarScore,
+  social: pillarScore,
+  governance: pillarScore,
+  comment: optionalText(1000),
+  pledge: z.preprocess((v) => v === true || v === "on" || v === "true", z.literal(true)),
+});
+export type CommunityRatingInput = z.output<typeof communityRatingSchema>;
+
+export const sourceVoteSchema = z.object({
+  sourceId: idSchema,
+  /** "up" = reliable, "down" = not reliable, "clear" = withdraw the vote. */
+  vote: z.enum(["up", "down", "clear"]),
+});
+
+export const articleSubmissionSchema = z.object({
+  brandSlug: slugSchema,
+  url: z
+    .string()
+    .trim()
+    .max(2048)
+    .url()
+    .refine((u) => /^https?:\/\//i.test(u), "URL must start with http:// or https://"),
+  title: requiredText(5, 300),
+  pillar: z.enum(["E", "S", "G"]),
+  sentiment: z.enum(["POSITIVE", "NEUTRAL", "NEGATIVE"]),
+  summary: requiredText(10, 500),
+});
+export type ArticleSubmissionInput = z.output<typeof articleSubmissionSchema>;
+
+export const submissionReviewSchema = z.object({
+  submissionId: idSchema,
+  decision: z.enum(["APPROVED", "REJECTED"]),
+  reviewNote: optionalText(1000),
+});
+
+export const devMemberLoginSchema = z.object({
+  displayName: requiredText(2, 60),
+});
+
 export const analyticsEventSchema = z.object({
   name: z.enum([
     "brand_search",
