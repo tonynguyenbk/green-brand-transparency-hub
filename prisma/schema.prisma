@@ -196,6 +196,8 @@ model Brand {
   country          String?
   website          String?
   logoUrl          String?
+  /// Domain used to fetch the brand's logo (e.g. \"adidas.com\").
+  logoDomain       String?
   description      String?
   isFictional      Boolean          @default(false)
   status           BrandStatus      @default(DRAFT)
@@ -217,6 +219,8 @@ model Brand {
   disclosureItems     DisclosureItem[]
   researchConditions  ResearchCondition[]
   correctionReports   CorrectionReport[]
+  esgAssessments      EsgAssessment[]
+  esgSources          EsgSource[]
 
   @@index([industryId])
   @@index([status])
@@ -442,6 +446,53 @@ model CorrectionReport {
   claim Claim? @relation(fields: [claimId], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Greenlens ESG (news-based analytical assessments)
+// ---------------------------------------------------------------------------
+
+/// One ESG assessment of a company. Pillars are scored /10; `overall` is
+/// always computed by lib/esg/scoring.ts. Re-assessments add a new row and
+/// mark it current, so history is preserved.
+model EsgAssessment {
+  id                 String   @id @default(cuid())
+  brandId            String
+  environmental      Float
+  social             Float
+  governance         Float
+  overall            Float
+  whyVi              String
+  whyEn              String
+  envNoteVi          String
+  envNoteEn          String
+  socNoteVi          String
+  socNoteEn          String
+  govNoteVi          String
+  govNoteEn          String
+  methodologyVersion String   @default("esg-1.0")
+  isCurrent          Boolean  @default(true)
+  assessedAt         DateTime @default(now())
+  createdAt          DateTime @default(now())
+
+  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@index([brandId, isCurrent])
+}
+
+/// Article or report used as evidence for an ESG assessment.
+model EsgSource {
+  id               String   @id @default(cuid())
+  brandId          String
+  title            String
+  url              String
+  /// True when the link is not a specific article (e.g. a search results page).
+  needsReplacement Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, url])
 }
 
 // ---------------------------------------------------------------------------
