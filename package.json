@@ -20,6 +20,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:reset": "prisma migrate reset --force",
     "seed": "tsx prisma/seed.ts",
+    "seed:esg": "tsx prisma/seed-esg.ts",
     "score:recalculate": "tsx scripts/scoring/recalculate-all.ts",
     "import:candidates": "tsx scripts/import/import-candidates.ts"
   },

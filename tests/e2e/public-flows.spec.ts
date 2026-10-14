@@ -1,36 +1,46 @@
 import { expect, test } from "@playwright/test";
 
-test("Flow A: homepage → search brand → open profile → inspect claim → inspect evidence", async ({
+test("Flow A: Greenlens home → search company → company page with score and sources", async ({
   page,
 }) => {
   await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("27");
+  await page.waitForLoadState("networkidle");
+
+  await page.getByRole("combobox", { name: /Tìm một công ty|Find a company/ }).fill("H&M");
+  await page.getByRole("option", { name: /H&M/ }).click();
+  await expect(page).toHaveURL(/\/companies\/hm$/);
+
+  await expect(page.getByRole("heading", { level: 1, name: "H&M" })).toBeVisible();
+  await expect(page.getByText("6.5").first()).toBeVisible();
+  await expect(page.getByText("7.5 × 0.4 + 6.0 × 0.35 + 5.5 × 0.25")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Forbes/ })).toHaveAttribute("href", /forbes\.com/);
+});
+
+test("rankings filter, language switch and theme switch", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  const table = page.locator("#rankings table");
+  await page
+    .locator("#rankings")
+    .getByRole("button", { name: /Công nghệ/ })
+    .click();
+  await expect(table.getByRole("link", { name: "Apple" })).toBeVisible();
+  await expect(table.getByRole("link", { name: "Nike" })).toHaveCount(0);
+
+  await page
+    .getByRole("button", { name: "EN", exact: true })
+    .filter({ visible: true })
+    .first()
+    .click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "How transparent is the sustainability story",
+    "ESG scores for 27 major brands",
   );
-  await expect(page.getByText("Development notice:").first()).toBeVisible();
 
-  await page.getByLabel("Search brands").fill("Verdant");
-  await page.getByRole("button", { name: "Search a brand" }).click();
-  await expect(page).toHaveURL(/\/brands\?q=Verdant/);
-
-  await page.getByRole("link", { name: "Verdant Wear" }).first().click();
-  await expect(page).toHaveURL(/\/brands\/verdant-wear/);
-  await expect(page.getByRole("heading", { level: 1, name: "Verdant Wear" })).toBeVisible();
-  await expect(page.getByLabel(/Green Transparency Score \d+ out of 100/)).toBeVisible();
-  await expect(page.getByText(/Confidence: (High|Medium|Low)/).first()).toBeVisible();
-  await expect(page.getByText("Sources reviewed")).toBeVisible();
-  await expect(page.getByText("Last reviewed").first()).toBeVisible();
-
-  const rows = page.getByTestId("claim-row");
-  await expect(rows.first()).toBeVisible();
-  await rows.first().click();
-
-  const panel = page.getByTestId("evidence-panel");
-  await expect(panel).toBeVisible();
-  await expect(panel.getByText("Transparency-risk explanation")).toBeVisible();
-  await expect(panel.getByRole("heading", { name: /Sources \(\d+\)/ })).toBeVisible();
-  await expect(panel.getByText("Publisher").first()).toBeVisible();
-  await expect(panel.getByText(/Evidence level|Level \d of 5/).first()).toBeVisible();
+  await page.getByRole("button", { name: "Dark" }).filter({ visible: true }).first().click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 });
 
 test("Flow B: compare → choose two brands → see comparison", async ({ page }) => {
