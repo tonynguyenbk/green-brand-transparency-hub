@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/admin/login-form";
+import { GoogleMark } from "@/components/gl/community/rate-card";
+import { signInWithGoogle } from "@/lib/auth/member-actions";
 import { Container } from "@/components/layout/page-header";
 import { getAuthMode } from "@/lib/auth/config";
 import { getAdminSession } from "@/lib/auth/session";
@@ -26,7 +28,24 @@ export default async function LoginPage() {
             DEV_ADMIN_PASSWORD and DEV_AUTH_SECRET for local development (see docs/development.md).
           </p>
         ) : (
-          <LoginForm mode={mode} />
+          <>
+            {mode === "supabase" && (
+              <form action={signInWithGoogle} className="space-y-2">
+                <input type="hidden" name="next" value="/admin" />
+                <button
+                  type="submit"
+                  className="hover:bg-muted inline-flex h-11 w-full items-center justify-center gap-3 rounded-lg border font-semibold"
+                >
+                  <GoogleMark />
+                  Continue with Google
+                </button>
+                <p className="text-muted-foreground text-xs">
+                  Only e-mails on the admin allowlist (ADMIN_EMAILS) get access.
+                </p>
+              </form>
+            )}
+            <LoginForm mode={mode} />
+          </>
         )}
       </div>
     </Container>

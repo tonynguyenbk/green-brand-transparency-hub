@@ -93,6 +93,7 @@ export async function getEsgCompany(slug: string) {
   const sector = brand.industry.slug as SectorKey;
   const peers = all.filter((r) => r.sector === sector);
   return {
+    id: brand.id,
     slug: brand.slug,
     name: brand.name,
     sector,
@@ -120,6 +121,9 @@ export async function getEsgCompany(slug: string) {
       title: s.title,
       url: s.url,
       needsReplacement: s.needsReplacement,
+      pillar: s.pillar,
+      sentiment: s.sentiment,
+      fromCommunity: s.submissionId !== null,
     })),
     peers,
     rankInSector: peers.findIndex((p) => p.slug === brand.slug) + 1,

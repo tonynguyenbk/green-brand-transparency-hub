@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getLocale } from "@/lib/i18n/server";
 import { tr } from "@/lib/i18n/shared";
 import { cn } from "@/lib/utils";
+import { MemberMenu } from "./member-menu";
 import { LanguageSwitch, ThemeSwitch } from "./preferences";
 
 export function Wordmark({ className, onDark }: { className?: string; onDark?: boolean }) {
@@ -73,6 +74,7 @@ export async function SiteHeader({ variant = "light" }: { variant?: "light" | "f
         <div className="ml-auto flex items-center gap-2">
           <LanguageSwitch onDark={onDark} />
           <ThemeSwitch onDark={onDark} className="hidden sm:inline-flex" />
+          <MemberMenu locale={locale} onDark={onDark} />
         </div>
       </div>
     </header>

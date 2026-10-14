@@ -51,8 +51,32 @@ Imported sources and claims are `CANDIDATE` and never affect scores. A sample fi
 2. Run `npm run db:deploy` (or `npx prisma migrate deploy`) and optionally `npm run seed`.
 3. In *Project Settings → API*, copy the URL and anon key into `NEXT_PUBLIC_SUPABASE_URL` and
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Setting these switches auth mode to Supabase and disables dev login.
-4. In *Authentication → Users*, create admin users (e-mail + password). Disable public sign-ups.
-5. Add their e-mails to `ADMIN_EMAILS` (or insert `AdminUser` rows). Any other Supabase user is rejected.
+4. Admins sign in with Google (or e-mail + password users created in *Authentication → Users*).
+5. Add their e-mails to `ADMIN_EMAILS` (or insert `AdminUser` rows). Any other Supabase user can
+   use the community features but is rejected from `/admin`.
+
+The database can stay on Neon: only Supabase **Auth** is required.
+
+## Community sign-in (Google)
+
+Members rate companies, vote on source reliability and suggest articles. They sign in with Google
+through Supabase Auth:
+
+1. Google Cloud Console → *APIs & Services → Credentials → OAuth client ID* (Web application).
+   Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`.
+2. Supabase → *Authentication → Providers → Google*: enable, paste the client ID and secret.
+3. Supabase → *Authentication → URL Configuration*: Site URL = the production URL; add
+   `https://<production-host>/**` and `http://localhost:3000/**` to Redirect URLs.
+4. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Vercel: Production and Preview).
+
+The app's callback is `/auth/callback`; `proxy.ts` refreshes the session cookie on every request.
+
+Without Supabase, member sign-in is **name-only test mode** in local development (requires
+`DEV_AUTH_SECRET`) and **disabled** when `NODE_ENV=production` — preview and production share one
+database, so test identities never reach it. Rules (see `lib/community/aggregate.ts`): a community
+score appears from 10 ratings; a source with ≥10 votes and <40% "reliable" is flagged for editors;
+a member may have at most 5 pending suggestions. Approving a suggestion only adds a source — scores
+change only when an editor re-assesses the company.
 
 ## Deployment (Vercel + Neon)
 

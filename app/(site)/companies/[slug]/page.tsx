@@ -1,11 +1,17 @@
-import { AlertTriangleIcon, ArrowLeftIcon, ArrowUpRightIcon, StarIcon } from "lucide-react";
+import { AlertTriangleIcon, ArrowLeftIcon, ArrowUpRightIcon, UsersIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CommunityCompare } from "@/components/gl/community/compare";
+import { RateCard, type CommunityAccess } from "@/components/gl/community/rate-card";
+import { SourceVote } from "@/components/gl/community/source-vote";
+import { SubmitArticle } from "@/components/gl/community/submit-article";
 import { CompanyLogo } from "@/components/gl/company-logo";
 import { BAND_VAR, BandPill, BandScale, PILLAR_VAR } from "@/components/gl/score-parts";
 import { SiteHeader } from "@/components/gl/site-chrome";
 import { SECTORS } from "@/data/esg/companies";
+import { getMember, getMemberAuthMode } from "@/lib/auth/member";
+import { getCommunityView } from "@/lib/community/service";
 import { ESG_WEIGHTS, formatEsg, rulerPercent } from "@/lib/esg/scoring";
 import { getEsgCompany } from "@/lib/esg/service";
 import { getLocale } from "@/lib/i18n/server";
@@ -36,8 +42,22 @@ function host(url: string) {
 export default async function CompanyPage(props: PageProps<"/companies/[slug]">) {
   const slug = slugSchema.safeParse((await props.params).slug);
   if (!slug.success) notFound();
-  const [locale, c] = await Promise.all([getLocale(), getEsgCompany(slug.data)]);
+  const [locale, c, member] = await Promise.all([
+    getLocale(),
+    getEsgCompany(slug.data),
+    getMember(),
+  ]);
   if (!c) notFound();
+  const community = await getCommunityView(
+    c.id,
+    c.sources.map((s) => s.id),
+    member?.id ?? null,
+  );
+  const access: CommunityAccess = {
+    mode: getMemberAuthMode(),
+    signedIn: Boolean(member),
+    loginHref: `/login?next=${encodeURIComponent(`/companies/${c.slug}`)}`,
+  };
   const L = (vi: string, en: string) => tr(locale, vi, en);
   const a = c.assessment;
   const sector = SECTORS.find((s) => s.key === c.sector)!;
@@ -208,30 +228,63 @@ export default async function CompanyPage(props: PageProps<"/companies/[slug]">)
             </ul>
           </section>
 
+          <CommunityCompare
+            locale={locale}
+            name={c.name}
+            greenlens={{ e: a.e, s: a.s, g: a.g, overall: a.overall }}
+            summary={community.summary}
+          />
+
           <section aria-labelledby="src-h" className="space-y-5">
-            <div className="flex flex-wrap items-end justify-between gap-2">
-              <h2 id="src-h" className="text-2xl font-semibold">
-                {L("Nguồn đã dùng", "Sources used")}{" "}
-                <span className="tabular text-muted-foreground">({c.sources.length})</span>
-              </h2>
-              <p className="text-muted-foreground text-sm">
-                {L("Mở bài gốc để tự kiểm chứng", "Open the original to check for yourself")}
-              </p>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 id="src-h" className="text-2xl font-semibold">
+                  {L("Nguồn tin đứng sau điểm số", "The sources behind the score")}{" "}
+                  <span className="tabular text-muted-foreground">({c.sources.length})</span>
+                </h2>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {L(
+                    `Bài này có phản ánh đúng ${c.name} không? Phiếu của bạn giúp chúng tôi lọc nguồn.`,
+                    `Does each article fairly reflect ${c.name}? Your vote helps us filter sources.`,
+                  )}
+                </p>
+              </div>
             </div>
             <ul className="grid gap-3">
               {c.sources.map((s) => (
-                <li key={s.id}>
+                <li key={s.id} className="bg-card space-y-3 rounded-xl border p-4">
                   <a
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group bg-card hover:border-primary/50 flex items-start gap-4 rounded-xl border p-4 transition-colors"
+                    className="group flex items-start gap-4"
                   >
                     <CompanyLogo name={host(s.url)} domain={host(s.url)} size={36} />
                     <span className="min-w-0 flex-1">
                       <span className="block font-medium group-hover:underline">{s.title}</span>
-                      <span className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-xs">
                         {host(s.url)}
+                        {s.pillar && (
+                          <span
+                            className="rounded-full px-2 py-0.5 font-semibold"
+                            style={{
+                              color: PILLAR_VAR[s.pillar.toLowerCase() as "e" | "s" | "g"],
+                              background: `color-mix(in oklab, ${PILLAR_VAR[s.pillar.toLowerCase() as "e" | "s" | "g"]} 12%, transparent)`,
+                            }}
+                          >
+                            {s.pillar === "E"
+                              ? L("Môi trường", "Environmental")
+                              : s.pillar === "S"
+                                ? L("Xã hội", "Social")
+                                : L("Quản trị", "Governance")}
+                          </span>
+                        )}
+                        {s.fromCommunity && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-dashed px-2 py-0.5 font-semibold">
+                            <UsersIcon className="size-3" aria-hidden="true" />
+                            {L("Do cộng đồng gửi", "Suggested by the community")}
+                          </span>
+                        )}
                         {s.needsReplacement && (
                           <span className="bg-notice-bg text-notice inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold">
                             <AlertTriangleIcon className="size-3" />
@@ -251,34 +304,42 @@ export default async function CompanyPage(props: PageProps<"/companies/[slug]">)
                       {L("(mở trong tab mới)", "(opens in a new tab)")}
                     </span>
                   </a>
+                  <div className="border-t pt-3">
+                    <SourceVote
+                      sourceId={s.id}
+                      initial={community.reliability[s.id]}
+                      access={access}
+                    />
+                  </div>
                 </li>
               ))}
             </ul>
+            <div className="flex flex-wrap items-start gap-3 rounded-xl border border-dashed p-4">
+              <p className="text-muted-foreground min-w-0 flex-1 basis-60 text-sm">
+                {L(
+                  `Bạn biết một bài báo về ${c.name} mà chúng tôi chưa có?`,
+                  `Know an article about ${c.name} that we're missing?`,
+                )}
+              </p>
+              <SubmitArticle
+                slug={c.slug}
+                name={c.name}
+                access={access}
+                mySubmissions={community.mySubmissions}
+              />
+            </div>
           </section>
         </div>
 
         <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-          <section aria-labelledby="comm-h" className="bg-card rounded-2xl border p-6">
-            <div className="flex items-center justify-between">
-              <h2 id="comm-h" className="font-sans text-base font-semibold">
-                {L("Điểm cộng đồng", "Community score")}
-              </h2>
-              <span className="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-semibold">
-                {L("Sắp mở", "Coming soon")}
-              </span>
-            </div>
-            <div className="text-border mt-4 flex gap-1" aria-hidden="true">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <StarIcon key={i} className="size-6 fill-current" />
-              ))}
-            </div>
-            <p className="text-muted-foreground mt-3 text-sm">
-              {L(
-                `Bạn sẽ sớm chấm được ${c.name} theo từng trụ E, S, G bằng tài khoản Google. Điểm cộng đồng hiển thị riêng, không cộng vào điểm ESG.`,
-                `Soon you'll be able to rate ${c.name} on E, S and G with your Google account. Community scores are shown separately and never added to the ESG score.`,
-              )}
-            </p>
-          </section>
+          <RateCard
+            slug={c.slug}
+            name={c.name}
+            summary={community.summary}
+            mine={community.mine}
+            greenlens={{ e: a.e, s: a.s, g: a.g }}
+            access={access}
+          />
 
           <section aria-labelledby="peer-h" className="bg-card rounded-2xl border p-6">
             <h2 id="peer-h" className="font-sans text-base font-semibold">
