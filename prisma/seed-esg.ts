@@ -14,6 +14,8 @@ import { ESG_METHODOLOGY_VERSION, computeEsg } from "../lib/esg/scoring";
 
 const prisma = new PrismaClient();
 const ASSESSED_AT = new Date("2026-10-14T00:00:00.000Z");
+/** Companies removed from the dataset: archived (kept with their history), not deleted. */
+const RETIRED_SLUGS = ["fpt-retail"];
 
 async function main() {
   const industryIds: Record<string, string> = {};
@@ -28,6 +30,7 @@ async function main() {
 
   let created = 0;
   for (const c of COMPANIES) {
+    const assessedAt = c.assessedAt ? new Date(`${c.assessedAt}T00:00:00.000Z`) : ASSESSED_AT;
     const brand = await prisma.brand.upsert({
       where: { slug: c.slug },
       create: {
@@ -39,7 +42,7 @@ async function main() {
         logoDomain: c.domain,
         isFictional: false,
         status: "PUBLISHED",
-        lastReviewedAt: ASSESSED_AT,
+        lastReviewedAt: assessedAt,
       },
       update: {
         name: c.name,
@@ -47,7 +50,7 @@ async function main() {
         country: c.country,
         logoDomain: c.domain,
         isFictional: false,
-        lastReviewedAt: ASSESSED_AT,
+        lastReviewedAt: assessedAt,
       },
     });
 
@@ -78,7 +81,7 @@ async function main() {
           data: { isCurrent: false },
         }),
         prisma.esgAssessment.create({
-          data: { ...data, brandId: brand.id, isCurrent: true, assessedAt: ASSESSED_AT },
+          data: { ...data, brandId: brand.id, isCurrent: true, assessedAt },
         }),
       ]);
       created++;
@@ -97,6 +100,11 @@ async function main() {
       });
     }
   }
+  const retired = await prisma.brand.updateMany({
+    where: { slug: { in: RETIRED_SLUGS }, status: { not: "ARCHIVED" } },
+    data: { status: "ARCHIVED" },
+  });
+  if (retired.count) console.log(`Archived ${retired.count} retired companies.`);
   console.log(`ESG dataset loaded: ${COMPANIES.length} companies, ${created} new assessment(s).`);
 }
 
