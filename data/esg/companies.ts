@@ -7,7 +7,7 @@
  * pillars with lib/esg/scoring.ts (the `listedOverall` from rating.md is kept
  * only for auditing).
  */
-export type SectorKey = "fashion" | "beauty" | "food" | "tech" | "retail";
+export type SectorKey = "fashion" | "beauty" | "food" | "tech" | "retail" | "real-estate";
 
 export interface Bilingual {
   vi: string;
@@ -34,6 +34,8 @@ export interface EsgCompanySeed {
   why: Bilingual;
   notes: { e: Bilingual; s: Bilingual; g: Bilingual };
   sources: EsgSourceSeed[];
+  /** ISO date of the assessment; defaults to the original dataset date. */
+  assessedAt?: string;
 }
 
 export const SECTORS: { key: SectorKey; vi: string; en: string; context: Bilingual }[] = [
@@ -80,6 +82,15 @@ export const SECTORS: { key: SectorKey; vi: string; en: string; context: Bilingu
     context: {
       vi: "Nguồn hàng, bao bì, năng lượng, quản lý rác, phúc lợi nhân viên và quan hệ nhà cung cấp.",
       en: "Product sourcing, packaging, energy, waste management, worker welfare and supplier relationships.",
+    },
+  },
+  {
+    key: "real-estate",
+    vi: "Bất động sản",
+    en: "Real estate",
+    context: {
+      vi: "Sử dụng đất và hệ sinh thái, năng lượng và vật liệu của công trình, rủi ro ngập lụt và khí hậu, nhà ở vừa túi tiền, an toàn lao động công trường và minh bạch tài chính.",
+      en: "Land use and ecosystems, building energy and materials, flood and climate risk, affordable housing, construction-site safety and financial transparency.",
     },
   },
 ];
@@ -1197,45 +1208,96 @@ export const COMPANIES: EsgCompanySeed[] = [
     ],
   },
   {
-    slug: "fpt-retail",
-    name: "FPT Retail",
-    sector: "retail",
+    slug: "nam-long",
+    name: "Nam Long",
+    sector: "real-estate",
     country: "VN",
-    domain: "fptshop.com.vn",
-    e: 6.0,
+    domain: "namlongvn.com",
+    e: 7.0,
     s: 7.0,
-    g: 6.0,
-    listedOverall: 6.3,
+    g: 6.5,
+    listedOverall: 6.9,
+    assessedAt: "2026-10-29",
     why: b(
-      "FPT Retail có thể hưởng lợi từ sáng kiến chung của tập đoàn, nhưng điểm mang tính tạm thời vì các bài báo chưa tách riêng kết quả ESG của công ty con.",
-      "FPT Retail may benefit from group-wide initiatives, but the score is provisional because the articles don't isolate the subsidiary's own performance.",
+      "Nam Long có bằng chứng cụ thể và kiểm chứng được: dự án đạt chứng nhận xanh EDGE của IFC, IFC là nhà đầu tư trái phiếu, báo cáo bền vững 3 năm liền theo GRI, và số căn nhà vừa túi tiền bàn giao được công bố. Điểm chưa cao hơn vì chưa thấy số liệu phát thải toàn công ty hay kiểm toán độc lập.",
+      "Nam Long shows specific, checkable evidence: IFC EDGE-certified projects, IFC as a bond investor, three consecutive GRI-referenced sustainability reports and published affordable-home handovers. It is not higher because company-wide emissions data and independent assurance were not found.",
     ),
     notes: {
       e: b(
-        "Có cơ hội cải thiện năng lượng, bao bì và rác thải điện tử; các nguồn chủ yếu nói về Tập đoàn FPT chứ không riêng FPT Retail.",
-        "Opportunities in energy, packaging and e-waste; the sources mainly concern FPT Corporation rather than FPT Retail.",
+        "Phân khu Solaria Rise (Waterpoint) đạt EDGE với mức tiết kiệm khoảng 23% năng lượng, 27–31% nước và tới 33% carbon hàm chứa trong vật liệu; Waterpoint giữ hành lang cây xanh ven sông 50 m và 62 ha công viên. Chưa thấy công bố phát thải Scope 1–2 toàn công ty.",
+        "Solaria Rise (Waterpoint) is EDGE-certified at about 23% energy, 27–31% water and up to 33% embodied-carbon savings; Waterpoint keeps a 50 m riparian buffer and 62 ha of parks. No company-wide Scope 1–2 emissions disclosure was found.",
       ),
       s: b(
-        "Các chương trình xã hội của Tập đoàn là bối cảnh liên quan, nhưng không mặc định quy cho FPT Retail nếu không có bằng chứng.",
-        "Group social programmes are context, not automatically attributable to FPT Retail without evidence.",
+        "Năm 2025 bàn giao 1.119 căn nhà ở xã hội và vừa túi tiền (EHome, EHomeS), 11,8 triệu giờ công an toàn không có tai nạn nghiêm trọng, và quỹ học bổng gần 1.800 suất trong 16 năm.",
+        "In 2025 it handed over 1,119 social and affordable homes (EHome, EHomeS), logged 11.8 million safe work hours with no serious accidents, and has funded nearly 1,800 scholarships over 16 years.",
       ),
       g: b(
-        "Chính sách quản trị cấp tập đoàn là bối cảnh hữu ích; đánh giá tin cậy cần công bố riêng của FPT Retail.",
-        "Group-level governance policies are useful background; a reliable assessment requires FPT Retail-specific disclosures.",
+        "Báo cáo bền vững năm thứ ba liên tiếp, tham chiếu GRI 2021 và tiêu chuẩn hoạt động của IFC; IFC mua 1.000 tỷ đồng trái phiếu kèm cam kết chuẩn EDGE. Chưa thấy đảm bảo độc lập cho số liệu ESG.",
+        "Third consecutive sustainability report referencing GRI 2021 and IFC Performance Standards; IFC bought VND 1,000 billion of bonds tied to EDGE standards. No independent assurance of ESG data was found.",
       ),
     },
     sources: [
       {
-        title: "FPT allocates over 1,000 billion VND for social responsibility — FPT",
-        url: "https://fpt.com/en/news/fpt-corporation-allocates-over-1000-billion-vnd-for-social-responsibility-initiatives",
+        title: "Nam Long năm thứ 3 liên tiếp công bố báo cáo phát triển bền vững — Znews",
+        url: "https://znews.vn/nam-long-nam-thu-3-lien-tiep-cong-bo-bao-cao-phat-trien-ben-vung-post1673342.html",
       },
       {
-        title: "2025: a year of progress toward FPT sustainability commitments — FPT Software",
-        url: "https://fptsoftware.com/newsroom/news-and-press-releases/news/2025-a-year-of-progress-toward-fpt-sustainability-commitments",
+        title:
+          "IFC hỗ trợ Nam Long phát triển dự án nhà ở xanh và bền vững — Thị trường Tài chính Tiền tệ",
+        url: "https://thitruongtaichinhtiente.vn/ifc-ho-tro-cong-ty-co-phan-dau-tu-nam-long-phat-trien-du-an-nha-o-xanh-va-ben-vung-40143.html",
       },
       {
-        title: "FPT and two charity funds for the community — Saigon Times",
-        url: "https://news.tuoitre.vn/saigontimes/fpt-and-two-charity-funds-for-the-community-105367993.htm",
+        title: "Nam Long 'Bắc tiến' với dòng sản phẩm EHome — Tuổi Trẻ",
+        url: "https://tuoitre.vn/nam-long-bac-tien-voi-dong-san-pham-ehome-20250528193811402.htm",
+      },
+    ],
+  },
+  {
+    slug: "vinhomes",
+    name: "Vinhomes",
+    sector: "real-estate",
+    country: "VN",
+    domain: "vinhomes.vn",
+    e: 4.5,
+    s: 6.0,
+    g: 5.0,
+    listedOverall: 5.2,
+    assessedAt: "2026-10-29",
+    why: b(
+      "Vinhomes đóng góp lớn về nhà ở xã hội, nhưng dự án lấn biển Cần Giờ cạnh khu dự trữ sinh quyển rừng ngập mặn gây lo ngại môi trường chưa được giải đáp độc lập, và Fitch cho biết xếp hạng của công ty bị kéo xuống bởi công ty mẹ Vingroup.",
+      "Vinhomes contributes substantially to social housing, but its Can Gio sea-reclamation project beside a mangrove biosphere reserve raises environmental concerns not independently resolved, and Fitch says its rating is held back by parent Vingroup.",
+    ),
+    notes: {
+      e: b(
+        "Dự án Cần Giờ 2.870 ha (khoảng 8,5 tỷ USD) do công ty con của Vingroup làm chủ đầu tư, nằm trong vùng đệm Khu dự trữ sinh quyển rừng ngập mặn Cần Giờ; chuyên gia lo ngại xói lở, khai thác khoảng 138 triệu m³ cát và rủi ro khí hậu. Doanh nghiệp cho biết đã có ĐTM được duyệt và dành phân khu bảo tồn. Đây là vấn đề đang được tranh luận, không phải kết luận sai phạm.",
+        "The 2,870 ha (about $8.5bn) Can Gio project, led by a Vingroup subsidiary, sits in the buffer zone of the Can Gio mangrove biosphere reserve; experts warn of erosion, about 138 million m³ of sand extraction and climate risk. The company says its EIA was approved and conservation zones are planned. This is a debated issue, not a finding of wrongdoing.",
+      ),
+      s: b(
+        "Triển khai nhà ở xã hội Happy Home quy mô lớn, ví dụ dự án Cam Ranh gần 3.600 căn thấp tầng cho người thu nhập thấp và công nhân, dự kiến hoàn thành cuối 2026.",
+        "Large-scale Happy Home social housing, e.g. nearly 3,600 low-rise units for low-income buyers and workers in Cam Ranh, due by end-2026.",
+      ),
+      g: b(
+        "Fitch xếp hạng BB- (ổn định); hồ sơ độc lập ở mức bb nhưng bị giới hạn bởi Vingroup, và dòng tiền của Vinhomes được kỳ vọng bù đắp cho VinFast đang đốt tiền. Thông tin ESG chủ yếu công bố ở cấp tập đoàn.",
+        "Fitch rates it BB- (stable); its standalone profile is bb but capped by Vingroup, and Vinhomes' cash flows are expected to offset VinFast's cash burn. ESG information is mostly disclosed at group level.",
+      ),
+    },
+    sources: [
+      {
+        title:
+          "Vingroup aims to launch $8.5bn Can Gio reclaimed coastal urban project — Tuoi Tre News",
+        url: "https://news.tuoitre.vn/vingroup-aims-to-launch-85bn-can-gio-reclaimed-coastal-urban-project-before-april-30-10385092.htm",
+      },
+      {
+        title: "Vietnam approves US$9 billion project within mangrove reserve — Eco-Business",
+        url: "https://eco-business.com/news/vietnam-approves-us9-billion-project-within-mangrove-reserve",
+      },
+      {
+        title: "Vinhomes khởi công dự án nhà ở xã hội gần 3.800 tỷ tại Khánh Hòa — Nhà Đầu tư",
+        url: "https://nhadautu.vn/vinhomes-khoi-cong-du-an-nha-o-xa-hoi-gan-3800-ty-tai-khanh-hoa-d83088.html",
+      },
+      {
+        title: "Fitch rates Vietnam's realty heavyweight Vinhomes as 'BB-' — The Investor",
+        url: "https://theinvestor.vn/fitch-rates-vietnams-realty-heavyweight-vinhomes-as-bb-d14088.html",
       },
     ],
   },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMPANIES } from "@/data/esg/companies";
+import { COMPANIES, SECTORS } from "@/data/esg/companies";
 import { bandFor, computeEsg, formatEsg, roundEsg, rulerPercent } from "@/lib/esg/scoring";
 
 describe("computeEsg", () => {
@@ -49,14 +49,21 @@ describe("bands", () => {
 });
 
 describe("seed data", () => {
-  it("has 27 companies with valid pillars and at least one source", () => {
-    expect(COMPANIES).toHaveLength(27);
+  it("has 28 companies with valid pillars and at least one source", () => {
+    expect(COMPANIES).toHaveLength(28);
     for (const c of COMPANIES) {
       expect(() => computeEsg(c.e, c.s, c.g)).not.toThrow();
       expect(c.sources.length).toBeGreaterThan(0);
       expect(c.why.vi && c.why.en && c.notes.e.vi && c.notes.g.en).toBeTruthy();
     }
-    expect(new Set(COMPANIES.map((c) => c.slug)).size).toBe(27);
+    expect(new Set(COMPANIES.map((c) => c.slug)).size).toBe(28);
+  });
+
+  it("puts every company in a known sector and leaves no sector with a single company", () => {
+    for (const s of SECTORS) {
+      expect(COMPANIES.filter((c) => c.sector === s.key).length).toBeGreaterThan(1);
+    }
+    expect(COMPANIES.every((c) => SECTORS.some((s) => s.key === c.sector))).toBe(true);
   });
 
   it("documents where rating.md's listed overall differs from the formula", () => {

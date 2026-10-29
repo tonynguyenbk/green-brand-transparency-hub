@@ -122,7 +122,8 @@ export async function getProfile(memberId: string) {
   const [events, ratings, votes, submissions] = await Promise.all([
     loadEvents(),
     prisma.communityRating.findMany({
-      where: { memberId, hidden: false },
+      // Archived companies have no page to link to.
+      where: { memberId, hidden: false, brand: { status: "PUBLISHED" } },
       orderBy: { updatedAt: "desc" },
       select: {
         stars: true,
