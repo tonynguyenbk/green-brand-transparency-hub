@@ -267,10 +267,10 @@ export function ProfileView({
             </ul>
           </section>
           <Link
-            href="/community"
+            href="/leaderboard"
             className="text-primary block rounded-2xl border border-dashed p-5 text-sm font-semibold hover:underline"
           >
-            {L("Xem bảng xếp hạng cộng đồng →", "See the community leaderboard →")}
+            {L("Xem Leaderboard →", "See the leaderboard →")}
           </Link>
         </aside>
       </div>

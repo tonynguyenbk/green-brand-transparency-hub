@@ -12,13 +12,13 @@ import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Community",
+  title: "Leaderboard",
   description: "Members who research, check and contribute ESG evidence on Greenlens.",
 };
 
 const MEDAL = ["#d4a017", "#9ca3af", "#b4713d"];
 
-export default async function CommunityPage(props: PageProps<"/community">) {
+export default async function LeaderboardPage(props: PageProps<"/leaderboard">) {
   const sp = await props.searchParams;
   const raw = Array.isArray(sp.period) ? sp.period[0] : sp.period;
   const period: Period = raw === "month" || raw === "all" ? raw : "week";
@@ -82,9 +82,7 @@ export default async function CommunityPage(props: PageProps<"/community">) {
       <main id="main" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
         <header className="max-w-2xl space-y-3">
           <p className="eyebrow text-primary">{L("Cộng đồng Greenlens", "Greenlens community")}</p>
-          <h1 className="text-4xl font-semibold sm:text-5xl">
-            {L("Bảng vàng cộng đồng xanh", "Green community leaderboard")}
-          </h1>
+          <h1 className="text-4xl font-semibold sm:text-5xl">Green Community Leaderboard</h1>
           <p className="text-muted-foreground text-lg">
             {L(
               "Ghi nhận những thành viên tích cực tìm hiểu, kiểm chứng và đóng góp bằng chứng ESG. Điểm phản ánh chất lượng nghiên cứu, không phải số tiền bạn chi tiêu.",
@@ -106,7 +104,7 @@ export default async function CommunityPage(props: PageProps<"/community">) {
                 {periods.map((p) => (
                   <Link
                     key={p.key}
-                    href={p.key === "week" ? "/community" : `/community?period=${p.key}`}
+                    href={p.key === "week" ? "/leaderboard" : `/leaderboard?period=${p.key}`}
                     aria-current={p.key === period ? "page" : undefined}
                     className={cn(
                       "rounded-lg px-3 py-1.5 text-sm font-medium",
@@ -234,7 +232,7 @@ export default async function CommunityPage(props: PageProps<"/community">) {
               ) : (
                 <p className="text-muted-foreground mt-2 text-sm">
                   <Link
-                    href="/login?next=/community"
+                    href="/login?next=/leaderboard"
                     className="text-primary font-semibold hover:underline"
                   >
                     {L("Đăng nhập", "Sign in")}
