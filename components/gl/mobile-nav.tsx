@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-/** Hamburger menu that replaces the main nav below the lg breakpoint. */
+/** Hamburger menu that replaces the main nav below the xl breakpoint. */
 export function MobileNav({
   items,
   label,
@@ -22,7 +22,7 @@ export function MobileNav({
       <SheetTrigger
         aria-label={label}
         className={cn(
-          "grid size-9 place-items-center rounded-lg border lg:hidden",
+          "grid size-9 place-items-center rounded-lg border xl:hidden",
           onDark ? "text-on-forest border-white/20 hover:bg-white/10" : "hover:bg-muted",
         )}
       >

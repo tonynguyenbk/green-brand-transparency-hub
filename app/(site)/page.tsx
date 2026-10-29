@@ -3,10 +3,12 @@ import Link from "next/link";
 import { CompanyLogo } from "@/components/gl/company-logo";
 import { HeroRuler } from "@/components/gl/hero-ruler";
 import { HeroSearch } from "@/components/gl/hero-search";
+import { MemberAvatar } from "@/components/gl/member-avatar";
 import { Rankings } from "@/components/gl/rankings";
 import { BAND_VAR, PILLAR_VAR } from "@/components/gl/score-parts";
 import { SiteHeader } from "@/components/gl/site-chrome";
 import { SECTORS } from "@/data/esg/companies";
+import { getLeaderboard } from "@/lib/community/profiles";
 import { ESG_WEIGHTS, bandFor, formatEsg } from "@/lib/esg/scoring";
 import { listEsgCompanies, summarizeSectors } from "@/lib/esg/service";
 import { getLocale } from "@/lib/i18n/server";
@@ -17,9 +19,15 @@ export const dynamic = "force-dynamic";
 /** Zoomed range for the per-sector strips (all scores fall well inside it). */
 const STRIP_MIN = 4;
 const STRIP_MAX = 8.5;
+/** Gold, silver, bronze rank chips (as on the leaderboard page). */
+const MEDAL = ["#d4a017", "#9ca3af", "#b4713d"];
 
 export default async function HomePage() {
-  const [locale, rows] = await Promise.all([getLocale(), listEsgCompanies()]);
+  const [locale, rows, board] = await Promise.all([
+    getLocale(),
+    listEsgCompanies(),
+    getLeaderboard("week", null, 3),
+  ]);
   const L = (vi: string, en: string) => tr(locale, vi, en);
   const sectors = summarizeSectors(rows);
   const average = rows.reduce((s, r) => s + r.overall, 0) / Math.max(rows.length, 1);
@@ -36,13 +44,16 @@ export default async function HomePage() {
       <div className="contours text-on-forest">
         <SiteHeader variant="forest" />
         <section id="main" className="mx-auto max-w-6xl px-4 pt-10 pb-12 sm:px-6 sm:pt-16">
-          <div className="grid gap-10 lg:grid-cols-[1.25fr_1fr] lg:items-end">
-            <div className="space-y-6">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-14">
+            <div className="flex flex-col justify-center space-y-7">
               <p className="eyebrow text-mint">
                 {L("Cơ sở dữ liệu ESG · dựng từ báo chí", "ESG database · built from the news")}
               </p>
-              <h1 className="text-[2.4rem] leading-[1.04] font-semibold sm:text-6xl">
-                {L("Điểm ESG của 27 thương hiệu lớn,", "ESG scores for 27 major brands,")}{" "}
+              <h1 className="text-[2.3rem] leading-[1.06] font-semibold sm:text-5xl xl:text-[3.6rem]">
+                {L(
+                  `Điểm ESG của ${rows.length} thương hiệu lớn,`,
+                  `ESG scores for ${rows.length} major brands,`,
+                )}{" "}
                 <em className="text-mint">
                   {L("và từng bài báo đứng sau con số.", "and every article behind the number.")}
                 </em>
@@ -54,26 +65,108 @@ export default async function HomePage() {
                 )}
               </p>
               <HeroSearch rows={rows} />
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-white/10 pt-6 sm:grid-cols-4">
+                {[
+                  [String(rows.length), L("công ty được chấm", "companies scored")],
+                  [String(sectors.length), L("ngành", "sectors")],
+                  [String(sourceCount), L("nguồn bài báo", "cited sources")],
+                  [String(vnCount), L("doanh nghiệp Việt Nam", "Vietnamese companies")],
+                ].map(([v, k]) => (
+                  <div key={k}>
+                    <dt className="sr-only">{k}</dt>
+                    <dd>
+                      <span className="tabular block font-serif text-3xl font-semibold">{v}</span>
+                      <span className="text-on-forest-2 text-sm">{k}</span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </div>
-            <dl className="grid grid-cols-2 gap-x-8 gap-y-5 border-t border-white/10 pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
-              {[
-                [String(rows.length), L("công ty được chấm", "companies scored")],
-                [String(sectors.length), L("ngành", "sectors")],
-                [String(sourceCount), L("nguồn bài báo", "cited sources")],
-                [String(vnCount), L("doanh nghiệp Việt Nam", "Vietnamese companies")],
-              ].map(([v, k]) => (
-                <div key={k}>
-                  <dt className="sr-only">{k}</dt>
-                  <dd>
-                    <span className="tabular block font-serif text-4xl font-semibold">{v}</span>
-                    <span className="text-on-forest-2 text-sm">{k}</span>
-                  </dd>
+
+            <aside
+              aria-label={L("Nổi bật", "Highlights")}
+              className="divide-y divide-white/10 self-center rounded-3xl border border-white/10 bg-white/[0.04]"
+            >
+              <section aria-labelledby="top-h" className="p-5 sm:p-6">
+                <div className="mb-4 flex items-baseline justify-between gap-3">
+                  <h2 id="top-h" className="font-sans text-base font-semibold">
+                    {L("Điểm ESG cao nhất", "Top ESG scores")}
+                  </h2>
+                  <span className="text-on-forest-2 text-xs">
+                    {L(`${rows.length} công ty`, `${rows.length} companies`)}
+                  </span>
                 </div>
-              ))}
-            </dl>
+                <ol className="space-y-1">
+                  {rows.slice(0, 5).map((r, i) => (
+                    <li key={r.slug}>
+                      <Link
+                        href={`/companies/${r.slug}`}
+                        className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-white/[0.06]"
+                      >
+                        <span className="tabular text-on-forest-2 w-4 text-sm">{i + 1}</span>
+                        <CompanyLogo name={r.name} domain={r.logoDomain} size={28} />
+                        <span className="min-w-0 flex-1 truncate font-medium">{r.name}</span>
+                        <span
+                          className="tabular rounded-md px-2 py-0.5 text-sm font-semibold text-white"
+                          style={{ background: BAND_VAR[r.band] }}
+                        >
+                          {formatEsg(r.overall)}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+                <Link
+                  href="/#rankings"
+                  className="text-mint mt-3 inline-flex items-center gap-1 px-2 text-sm font-semibold hover:underline"
+                >
+                  {L("Xem toàn bộ xếp hạng", "See all rankings")}
+                  <ArrowRightIcon className="size-4" aria-hidden="true" />
+                </Link>
+              </section>
+
+              <section aria-labelledby="lb-h" className="p-5 sm:p-6">
+                <div className="mb-4 flex items-baseline justify-between gap-3">
+                  <h2 id="lb-h" className="font-sans text-base font-semibold">
+                    {L("Leaderboard tuần này", "Leaderboard this week")}
+                  </h2>
+                  <span className="text-on-forest-2 text-xs">Green Points</span>
+                </div>
+                {board.rows.length === 0 ? (
+                  <p className="text-on-forest-2 px-2 text-sm">
+                    {L("Chưa ai có điểm tuần này.", "Nobody has scored this week yet.")}
+                  </p>
+                ) : (
+                  <ol className="space-y-1">
+                    {board.rows.slice(0, 3).map((r) => (
+                      <li key={r.memberId} className="flex items-center gap-3 px-2 py-1.5">
+                        <span
+                          className="tabular grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold text-white"
+                          style={{ background: MEDAL[r.rank - 1] ?? "rgb(255 255 255 / 0.2)" }}
+                        >
+                          {r.rank}
+                        </span>
+                        <MemberAvatar name={r.name} src={r.avatarUrl} size={28} />
+                        <span className="min-w-0 flex-1 truncate">
+                          {r.name ?? L("Thành viên ẩn danh", "Anonymous member")}
+                        </span>
+                        <span className="tabular text-sm font-semibold">{r.points} GP</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+                <Link
+                  href="/leaderboard"
+                  className="text-mint mt-3 inline-flex items-center gap-1 px-2 text-sm font-semibold hover:underline"
+                >
+                  {L("Tham gia Leaderboard", "Join the leaderboard")}
+                  <ArrowRightIcon className="size-4" aria-hidden="true" />
+                </Link>
+              </section>
+            </aside>
           </div>
 
-          <div className="mt-14 rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-8">
+          <div className="mt-12 rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-8">
             <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="text-xl font-semibold sm:text-2xl">
                 {L("Cả cơ sở dữ liệu trên một thước đo", "The whole database on one ruler")}

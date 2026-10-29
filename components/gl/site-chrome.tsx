@@ -33,6 +33,7 @@ export async function SiteHeader({ variant = "light" }: { variant?: "light" | "f
   const onDark = variant === "forest";
   const nav = [
     { href: "/#rankings", label: tr(locale, "Xếp hạng công ty", "Company rankings") },
+    { href: "/#sectors", label: tr(locale, "Theo ngành", "Sectors") },
     { href: "/news", label: tr(locale, "Tin tức", "News") },
     { href: "/leaderboard", label: "Leaderboard" },
     { href: "/how-we-score", label: tr(locale, "Cách chấm điểm", "How we score") },
@@ -54,7 +55,7 @@ export async function SiteHeader({ variant = "light" }: { variant?: "light" | "f
       </a>
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
         <Wordmark onDark={onDark} />
-        <nav aria-label="Main" className="hidden lg:block">
+        <nav aria-label="Main" className="hidden xl:block">
           <ul className="flex gap-1 text-sm font-medium">
             {nav.map((n) => (
               <li key={n.href}>

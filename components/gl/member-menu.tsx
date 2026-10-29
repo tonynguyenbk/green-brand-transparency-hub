@@ -8,8 +8,8 @@ import { MemberAvatar } from "./member-avatar";
 
 /** Header account control: "Sign in", or a link to the member's profile plus sign-out. */
 export async function MemberMenu({ locale, onDark }: { locale: Locale; onDark?: boolean }) {
-  if (getMemberAuthMode() === "disabled") return null;
-  const member = await getMember();
+  // While sign-in is disabled the button still shows; /login says it is coming soon.
+  const member = getMemberAuthMode() === "disabled" ? null : await getMember();
   const tone = onDark
     ? "border-white/20 text-on-forest hover:bg-white/10"
     : "border-border hover:bg-muted";
