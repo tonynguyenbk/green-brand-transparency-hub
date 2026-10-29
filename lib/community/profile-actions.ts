@@ -22,7 +22,7 @@ async function requireMember() {
 function refresh(memberId: string) {
   revalidatePath("/me");
   revalidatePath(`/members/${memberId}`);
-  revalidatePath("/community");
+  revalidatePath("/leaderboard");
 }
 
 export async function updateProfileAction(formData: FormData): Promise<ActionResult> {

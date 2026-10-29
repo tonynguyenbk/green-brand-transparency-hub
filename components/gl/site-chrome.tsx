@@ -32,9 +32,9 @@ export async function SiteHeader({ variant = "light" }: { variant?: "light" | "f
   const locale = await getLocale();
   const onDark = variant === "forest";
   const nav = [
-    { href: "/#rankings", label: tr(locale, "Bảng xếp hạng", "Rankings") },
+    { href: "/#rankings", label: tr(locale, "Xếp hạng công ty", "Company rankings") },
     { href: "/news", label: tr(locale, "Tin tức", "News") },
-    { href: "/community", label: tr(locale, "Cộng đồng", "Community") },
+    { href: "/leaderboard", label: "Leaderboard" },
     { href: "/how-we-score", label: tr(locale, "Cách chấm điểm", "How we score") },
   ];
   return (
@@ -111,7 +111,7 @@ export async function SiteFooter() {
           <ul className="space-y-2 text-sm">
             <li>
               <Link className="hover:underline" href="/#rankings">
-                {tr(locale, "Bảng xếp hạng", "Rankings")}
+                {tr(locale, "Xếp hạng công ty", "Company rankings")}
               </Link>
             </li>
             <li>
@@ -125,8 +125,8 @@ export async function SiteFooter() {
               </Link>
             </li>
             <li>
-              <Link className="hover:underline" href="/community">
-                {tr(locale, "Cộng đồng", "Community")}
+              <Link className="hover:underline" href="/leaderboard">
+                Leaderboard
               </Link>
             </li>
             <li>

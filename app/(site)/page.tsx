@@ -221,7 +221,7 @@ export default async function HomePage() {
         {/* Rankings */}
         <section id="rankings" aria-labelledby="rankings-h" className="scroll-mt-20 space-y-8">
           <div className="max-w-2xl space-y-2">
-            <p className="eyebrow text-primary">{L("Bảng xếp hạng", "Rankings")}</p>
+            <p className="eyebrow text-primary">{L("Xếp hạng công ty", "Company rankings")}</p>
             <h2 id="rankings-h" className="text-3xl font-semibold sm:text-4xl">
               {L("Tất cả 27 công ty, xếp theo điểm ESG", "All 27 companies, ranked by ESG score")}
             </h2>

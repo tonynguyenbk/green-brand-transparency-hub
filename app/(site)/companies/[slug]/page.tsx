@@ -82,7 +82,7 @@ export default async function CompanyPage(props: PageProps<"/companies/[slug]">)
             href="/#rankings"
             className="text-on-forest-2 hover:text-on-forest inline-flex items-center gap-1.5 text-sm"
           >
-            <ArrowLeftIcon className="size-4" /> {L("Bảng xếp hạng", "Rankings")}
+            <ArrowLeftIcon className="size-4" /> {L("Xếp hạng công ty", "Company rankings")}
           </Link>
           <div className="mt-8 grid gap-10 lg:grid-cols-[1.15fr_1fr] lg:items-end">
             <div>
