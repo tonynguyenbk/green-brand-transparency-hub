@@ -133,3 +133,42 @@ export async function getEsgCompany(slug: string) {
 }
 
 export type EsgCompanyDetail = NonNullable<Awaited<ReturnType<typeof getEsgCompany>>>;
+
+export interface NewsFilters {
+  company?: string;
+  pillar?: "E" | "S" | "G";
+  sentiment?: "POSITIVE" | "NEUTRAL" | "NEGATIVE";
+}
+
+/** Every cited article across published companies, newest first. */
+export async function listNews(filters: NewsFilters = {}) {
+  const sources = await prisma.esgSource.findMany({
+    where: {
+      needsReplacement: false,
+      brand: {
+        status: "PUBLISHED",
+        esgAssessments: { some: { isCurrent: true } },
+        ...(filters.company ? { slug: filters.company } : {}),
+      },
+      ...(filters.pillar ? { pillar: filters.pillar } : {}),
+      ...(filters.sentiment ? { sentiment: filters.sentiment } : {}),
+    },
+    orderBy: [{ createdAt: "desc" }, { title: "asc" }],
+    take: 500,
+    include: {
+      brand: { select: { slug: true, name: true, logoDomain: true } },
+      _count: { select: { votes: true } },
+    },
+  });
+  return sources.map((s) => ({
+    id: s.id,
+    title: s.title,
+    url: s.url,
+    pillar: s.pillar,
+    sentiment: s.sentiment,
+    fromCommunity: s.submissionId !== null,
+    addedAt: s.createdAt.toISOString(),
+    votes: s._count.votes,
+    company: s.brand,
+  }));
+}

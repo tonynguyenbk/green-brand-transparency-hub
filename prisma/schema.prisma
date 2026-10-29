@@ -527,22 +527,42 @@ enum SubmissionStatus {
 
 /// A signed-in member. Credentials live with the identity provider — never here.
 model Member {
-  id          String   @id @default(cuid())
+  id                 String      @id @default(cuid())
   /// "supabase" or "dev"
-  provider    String
+  provider           String
   /// Stable user id from the provider.
-  subject     String
-  email       String?
-  displayName String
-  avatarUrl   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  subject            String
+  email              String?
+  displayName        String
+  /// Photo from the identity provider; an uploaded MemberPhoto takes precedence.
+  avatarUrl          String?
+  bio                String?
+  /// ESG pillars the member is most interested in.
+  interests          EsgPillar[] @default([])
+  /// Private members appear anonymously on the leaderboard and have no public profile.
+  isPublic           Boolean     @default(true)
+  showActivity       Boolean     @default(true)
+  /// First time the profile had a bio and at least one interest (awards points once).
+  profileCompletedAt DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 
   ratings     CommunityRating[]
   votes       SourceVote[]
   submissions ArticleSubmission[]
+  photo       MemberPhoto?
 
   @@unique([provider, subject])
+}
+
+/// Uploaded profile picture, re-encoded by the browser to a small square image.
+model MemberPhoto {
+  memberId  String   @id
+  mime      String
+  data      Bytes
+  updatedAt DateTime @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }
 
 /// One rating per member per company; editing replaces it.

@@ -3,6 +3,7 @@ import { getLocale } from "@/lib/i18n/server";
 import { tr } from "@/lib/i18n/shared";
 import { cn } from "@/lib/utils";
 import { MemberMenu } from "./member-menu";
+import { MobileNav } from "./mobile-nav";
 import { LanguageSwitch, ThemeSwitch } from "./preferences";
 
 export function Wordmark({ className, onDark }: { className?: string; onDark?: boolean }) {
@@ -32,7 +33,8 @@ export async function SiteHeader({ variant = "light" }: { variant?: "light" | "f
   const onDark = variant === "forest";
   const nav = [
     { href: "/#rankings", label: tr(locale, "Bảng xếp hạng", "Rankings") },
-    { href: "/#sectors", label: tr(locale, "Theo ngành", "Sectors") },
+    { href: "/news", label: tr(locale, "Tin tức", "News") },
+    { href: "/community", label: tr(locale, "Cộng đồng", "Community") },
     { href: "/how-we-score", label: tr(locale, "Cách chấm điểm", "How we score") },
   ];
   return (
@@ -52,7 +54,7 @@ export async function SiteHeader({ variant = "light" }: { variant?: "light" | "f
       </a>
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
         <Wordmark onDark={onDark} />
-        <nav aria-label="Main" className="hidden md:block">
+        <nav aria-label="Main" className="hidden lg:block">
           <ul className="flex gap-1 text-sm font-medium">
             {nav.map((n) => (
               <li key={n.href}>
@@ -75,6 +77,7 @@ export async function SiteHeader({ variant = "light" }: { variant?: "light" | "f
           <LanguageSwitch onDark={onDark} />
           <ThemeSwitch onDark={onDark} className="hidden sm:inline-flex" />
           <MemberMenu locale={locale} onDark={onDark} />
+          <MobileNav items={nav} label={tr(locale, "Menu", "Menu")} onDark={onDark} />
         </div>
       </div>
     </header>
@@ -114,6 +117,16 @@ export async function SiteFooter() {
             <li>
               <Link className="hover:underline" href="/#sectors">
                 {tr(locale, "Theo ngành", "Sectors")}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/news">
+                {tr(locale, "Tin tức", "News")}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/community">
+                {tr(locale, "Cộng đồng", "Community")}
               </Link>
             </li>
             <li>

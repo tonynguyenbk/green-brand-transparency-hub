@@ -64,7 +64,7 @@ export async function devMemberSignIn(
   await prisma.member.upsert({
     where: { provider_subject: { provider: "dev", subject } },
     create: { provider: "dev", subject, displayName: parsed.data.displayName },
-    update: { displayName: parsed.data.displayName },
+    update: {},
   });
   (await cookies()).set(DEV_MEMBER_COOKIE, createDevMemberToken(subject), devMemberCookieOptions);
   redirect(safeNextPath(formData.get("next")));

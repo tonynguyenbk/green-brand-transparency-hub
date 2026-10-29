@@ -356,6 +356,17 @@ export const submissionReviewSchema = z.object({
   reviewNote: optionalText(1000),
 });
 
+const checkbox = z.preprocess((v) => v === true || v === "on" || v === "true", z.boolean());
+
+export const profileSchema = z.object({
+  displayName: requiredText(2, 60),
+  bio: optionalText(300),
+  interests: z.array(z.enum(["E", "S", "G"])).max(3),
+  isPublic: checkbox,
+  showActivity: checkbox,
+});
+export type ProfileInput = z.output<typeof profileSchema>;
+
 export const devMemberLoginSchema = z.object({
   displayName: requiredText(2, 60),
 });

@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { avatarFor } from "@/lib/community/profiles";
 import { prisma } from "@/lib/db/prisma";
 import { isSupabaseConfigured } from "./config";
 import { createSupabaseServerClient } from "./supabase-server";
@@ -82,7 +83,9 @@ export async function upsertSupabaseMember(user: {
       displayName: displayName.slice(0, 80),
       avatarUrl,
     },
-    update: { email: user.email ?? null, displayName: displayName.slice(0, 80), avatarUrl },
+    // The display name is editable on the profile page, so only the first sign-in sets it.
+    update: { email: user.email ?? null, avatarUrl },
+    include: { photo: { select: { updatedAt: true } } },
   });
 }
 
@@ -96,16 +99,18 @@ export async function getMember(): Promise<MemberSession | null> {
     const row =
       (await prisma.member.findUnique({
         where: { provider_subject: { provider: "supabase", subject: data.user.id } },
+        include: { photo: { select: { updatedAt: true } } },
       })) ?? (await upsertSupabaseMember(data.user));
-    return { id: row.id, displayName: row.displayName, avatarUrl: row.avatarUrl };
+    return { id: row.id, displayName: row.displayName, avatarUrl: avatarFor(row) };
   }
   if (mode === "dev") {
     const subject = verifyDevMemberToken((await cookies()).get(DEV_MEMBER_COOKIE)?.value);
     if (!subject) return null;
     const row = await prisma.member.findUnique({
       where: { provider_subject: { provider: "dev", subject } },
+      include: { photo: { select: { updatedAt: true } } },
     });
-    return row ? { id: row.id, displayName: row.displayName, avatarUrl: null } : null;
+    return row ? { id: row.id, displayName: row.displayName, avatarUrl: avatarFor(row) } : null;
   }
   return null;
 }
