@@ -22,7 +22,8 @@
     "seed": "tsx prisma/seed.ts",
     "seed:esg": "tsx prisma/seed-esg.ts",
     "score:recalculate": "tsx scripts/scoring/recalculate-all.ts",
-    "import:candidates": "tsx scripts/import/import-candidates.ts"
+    "import:candidates": "tsx scripts/import/import-candidates.ts",
+    "demo:seed": "tsx scripts/demo/seed-demo-members.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
