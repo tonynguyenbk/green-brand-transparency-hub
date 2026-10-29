@@ -9,6 +9,9 @@ import {
   type Reliability,
 } from "./aggregate";
 
+/** Demo members (scripts/demo) fill the leaderboard but never sway public aggregates. */
+const REAL_MEMBER = { member: { provider: { not: "demo" } } };
+
 export class CommunityError extends Error {
   constructor(readonly code: "not_found" | "too_many_pending" | "duplicate" | "already_reviewed") {
     super(code);
@@ -49,7 +52,7 @@ export async function getCommunityView(
 ): Promise<CommunityView> {
   const [ratings, votes, submissions] = await Promise.all([
     prisma.communityRating.findMany({
-      where: { brandId, hidden: false },
+      where: { brandId, hidden: false, ...REAL_MEMBER },
       select: {
         stars: true,
         environmental: true,
@@ -61,7 +64,7 @@ export async function getCommunityView(
       },
     }),
     prisma.sourceVote.findMany({
-      where: { sourceId: { in: sourceIds } },
+      where: { sourceId: { in: sourceIds }, ...REAL_MEMBER },
       select: { sourceId: true, reliable: true, memberId: true },
     }),
     memberId
@@ -229,10 +232,10 @@ export async function reviewSubmission(
 
 export async function listFlaggedSources() {
   const sources = await prisma.esgSource.findMany({
-    where: { votes: { some: {} } },
+    where: { votes: { some: REAL_MEMBER } },
     include: {
       brand: { select: { name: true, slug: true } },
-      votes: { select: { reliable: true } },
+      votes: { where: REAL_MEMBER, select: { reliable: true } },
     },
   });
   return sources
