@@ -4,8 +4,9 @@ import { getMember, getMemberAuthMode } from "@/lib/auth/member";
 import { memberSignOut } from "@/lib/auth/member-actions";
 import { tr, type Locale } from "@/lib/i18n/shared";
 import { cn } from "@/lib/utils";
+import { MemberAvatar } from "./member-avatar";
 
-/** Header account control: "Sign in", or the member's name with a sign-out button. */
+/** Header account control: "Sign in", or a link to the member's profile plus sign-out. */
 export async function MemberMenu({ locale, onDark }: { locale: Locale; onDark?: boolean }) {
   if (getMemberAuthMode() === "disabled") return null;
   const member = await getMember();
@@ -26,27 +27,20 @@ export async function MemberMenu({ locale, onDark }: { locale: Locale; onDark?: 
       </Link>
     );
   }
-  const initial = member.displayName.trim().charAt(0).toUpperCase();
   return (
     <div className="flex items-center gap-2">
-      <span className="hidden items-center gap-2 text-sm font-medium sm:inline-flex">
-        {member.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={member.avatarUrl}
-            alt=""
-            width={28}
-            height={28}
-            referrerPolicy="no-referrer"
-            className="size-7 rounded-full"
-          />
-        ) : (
-          <span className="bg-primary text-primary-foreground grid size-7 place-items-center rounded-full text-xs font-bold">
-            {initial}
-          </span>
+      <Link
+        href="/me"
+        title={tr(locale, "Hồ sơ của bạn", "Your profile")}
+        className={cn(
+          "inline-flex h-9 items-center gap-2 rounded-lg px-1 text-sm font-medium sm:pr-2",
+          onDark ? "hover:bg-white/10" : "hover:bg-muted",
         )}
-        <span className="max-w-32 truncate">{member.displayName}</span>
-      </span>
+      >
+        <MemberAvatar name={member.displayName} src={member.avatarUrl} size={28} />
+        <span className="hidden max-w-32 truncate sm:inline">{member.displayName}</span>
+        <span className="sr-only sm:hidden">{tr(locale, "Hồ sơ của bạn", "Your profile")}</span>
+      </Link>
       <form action={memberSignOut}>
         <input type="hidden" name="next" value="/" />
         <button
